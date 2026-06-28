@@ -1,0 +1,1500 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>斗罗·岁月修炼</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;user-select:none;-webkit-tap-highlight-color:transparent;}
+:root{--bg:#0A0A0F;--card:rgba(255,255,255,0.04);--border:rgba(255,255,255,0.08);--gold:#E8C268;--text:#EDEDED;--text2:#8A8A8A;--red:#E07866;--green:#7DD9A6;--blue:#5BA3E6;--purple:#9B7FD4;}
+body{font-family:'Noto Sans SC',sans-serif;background:var(--bg);color:var(--text);min-height:100dvh;display:flex;justify-content:center;padding:0;overflow-x:hidden;}
+#app{width:100%;max-width:420px;padding:10px 12px 30px}
+
+/* 启动画面 */
+#startScreen{text-align:center;padding-top:50px;}
+.start-logo{font-size:28px;font-weight:900;color:var(--gold);margin-bottom:4px;letter-spacing:2px;}
+.start-sub{font-size:13px;color:var(--text2);margin-bottom:28px;}
+.start-input{width:100%;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 16px;color:var(--text);font-size:16px;font-family:inherit;outline:none;margin-bottom:16px;text-align:center;}
+.start-input:focus{border-color:var(--gold);}
+.start-btn{width:100%;padding:16px;border:none;border-radius:12px;background:linear-gradient(135deg,#E8C268,#C4A25A);color:#0A0A0F;font-size:17px;font-weight:700;cursor:pointer;font-family:inherit;transition:opacity .2s;}
+.start-btn:active{opacity:.7;}
+.start-hint{font-size:12px;color:var(--text2);margin-top:10px;}
+
+/* 武魂觉醒弹窗 */
+.awaken-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.92);z-index:100;justify-content:center;align-items:center;flex-direction:column;padding:24px;}
+.awaken-overlay.show{display:flex;}
+.awaken-title{font-size:22px;font-weight:900;color:var(--gold);margin-bottom:6px;animation:fadeIn .6s;}
+.awaken-sub{font-size:13px;color:var(--text2);margin-bottom:20px;animation:fadeIn .8s;}
+.awaken-sp{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 24px;margin-bottom:16px;text-align:center;animation:fadeIn .5s;}
+.awaken-sp .sp-num{font-size:36px;font-weight:900;color:var(--gold);}
+.awaken-sp .sp-label{font-size:13px;color:var(--text2);margin-top:4px;}
+.awaken-sp .sp-rarity{font-size:11px;margin-top:4px;padding:2px 12px;border-radius:10px;display:inline-block;}
+.rarity-common{background:rgba(255,255,255,.06);color:var(--text2);}
+.rarity-uncommon{background:rgba(91,163,230,.15);color:var(--blue);}
+.rarity-rare{background:rgba(155,127,212,.15);color:var(--purple);}
+.rarity-legendary{background:linear-gradient(135deg,rgba(232,194,104,.2),rgba(196,162,90,.1));color:var(--gold);}
+
+/* 武魂展示 */
+.awaken-ms{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 24px;margin-bottom:16px;text-align:center;animation:fadeIn .6s;}
+.awaken-ms .ms-icon{font-size:28px;}
+.awaken-ms .ms-name{font-size:20px;font-weight:700;color:var(--text);margin-top:4px;}
+.awaken-ms .ms-type{font-size:12px;color:var(--text2);margin-top:2px;}
+.awaken-ms .ms-effect{font-size:11px;color:var(--gold);margin-top:4px;}
+.ms-tag{font-size:10px;padding:2px 8px;border-radius:6px;display:inline-block;margin-top:4px;}
+.ms-beast{background:rgba(91,163,230,.15);color:var(--blue);}
+.ms-weapon{background:rgba(232,194,104,.15);color:var(--gold);}
+.ms-plant{background:rgba(125,217,166,.15);color:var(--green);}
+.ms-special{background:rgba(155,127,212,.15);color:var(--purple);}
+
+.top-ms{font-size:12px;color:var(--text2);margin-bottom:2px;}
+
+.awaken-talents{width:100%;margin-bottom:16px;max-height:200px;overflow-y:auto;animation:fadeIn 1s;}
+.awaken-talents::-webkit-scrollbar{width:3px;}
+.awaken-talents::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+.talent-card{background:rgba(232,194,104,.06);border:1px solid rgba(232,194,104,.15);border-radius:10px;padding:12px;margin-bottom:8px;display:flex;align-items:center;gap:12px;}
+.talent-card .t-icon{font-size:24px;width:36px;text-align:center;}
+.talent-card .t-info{flex:1;}
+.talent-card .t-name{font-size:15px;font-weight:600;color:var(--gold);}
+.talent-card .t-desc{font-size:11px;color:var(--text2);margin-top:2px;}
+.talent-card .t-rate{font-size:10px;color:var(--purple);margin-top:1px;}
+
+.awaken-none{text-align:center;padding:16px;background:var(--card);border-radius:10px;color:var(--text2);font-size:13px;}
+.awaken-continue{width:100%;padding:16px;border:none;border-radius:12px;background:linear-gradient(135deg,#E8C268,#C4A25A);color:#0A0A0F;font-size:17px;font-weight:700;cursor:pointer;font-family:inherit;animation:fadeIn 1.2s;}
+
+/* 游戏界面 */
+#gameScreen{display:none;}
+.top-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.top-bar .left{text-align:left;}
+.top-bar .name{font-size:17px;font-weight:700;color:var(--gold);}
+.top-bar .age{font-size:12px;color:var(--text2);}
+.top-bar .year{font-size:12px;color:var(--text2);}
+.talents-bar{margin-bottom:8px;display:flex;gap:4px;flex-wrap:wrap;}
+.talent-tag{font-size:9px;padding:2px 6px;border-radius:4px;border:1px solid rgba(232,194,104,.2);background:rgba(232,194,104,.06);color:var(--gold);}
+.tabs{display:flex;gap:4px;margin-bottom:10px;}
+.tab{flex:1;padding:8px 0;text-align:center;font-size:13px;font-weight:500;border-radius:8px;cursor:pointer;background:var(--card);border:1px solid transparent;color:var(--text2);transition:.15s;}
+.tab.active{background:rgba(232,194,104,.1);border-color:var(--gold);color:var(--gold);}
+.tab-content{display:none;}
+.tab-content.active{display:block;}
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px;}
+.stat-card .stat-label{font-size:10px;color:var(--text2);margin-bottom:3px;}
+.stat-card .stat-value{font-size:16px;font-weight:700;}
+.stat-level .stat-value{color:var(--gold);}
+.stat-life .stat-value{color:var(--text);}
+.stat-hp .stat-value{color:var(--green);}
+.stat-card .stat-bar{height:3px;border-radius:2px;margin-top:4px;background:rgba(255,255,255,.06);overflow:hidden;}
+.stat-card .stat-fill{height:100%;border-radius:2px;transition:width .5s;}
+.stat-fill.gold{background:var(--gold);}
+.stat-fill.green{background:var(--green);}
+.stat-fill.blue{background:var(--blue);}
+.stat-card .stat-sub{font-size:10px;color:var(--text2);margin-top:2px;}
+.rings-section{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px;}
+.rings-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.rings-title{font-size:11px;color:var(--text2);}
+.rings-hunt{font-size:11px;color:var(--gold);}
+.rings-row{display:flex;gap:5px;flex-wrap:wrap;}
+.ring-dot{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;}
+.ring-clickable{cursor:pointer;transition:transform .12s;}
+.ring-clickable:active{transform:scale(1.2);}
+.ring-empty{background:rgba(255,255,255,.04);border:1px dashed rgba(255,255,255,.1);color:var(--text2);}
+.ring-white{background:linear-gradient(135deg,#FFF,#CCC);color:#222;box-shadow:0 0 5px rgba(255,255,255,.25);}
+.ring-yellow{background:linear-gradient(135deg,#FFD700,#DAA520);color:#222;box-shadow:0 0 6px rgba(255,215,0,.25);}
+.ring-purple{background:linear-gradient(135deg,#B388FF,#7C4DFF);color:#FFF;box-shadow:0 0 6px rgba(124,77,255,.25);}
+.ring-black{background:linear-gradient(135deg,#555,#222);color:#FFF;box-shadow:0 0 5px rgba(0,0,0,.3);}
+.ring-red{background:linear-gradient(135deg,#FF5252,#D32F2F);color:#FFF;box-shadow:0 0 8px rgba(255,82,82,.3);}
+.ring-gold{background:linear-gradient(135deg,#E8C268,#B8963E);color:#FFF;box-shadow:0 0 12px rgba(232,194,104,.5);}
+.skills-section{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px;}
+
+/* 装备界面 */
+.eq-grid{display:flex;flex-direction:column;gap:0;}
+.eq-slots-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:10px;}
+.eq-slot{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px;text-align:center;cursor:pointer;min-height:70px;display:flex;flex-direction:column;justify-content:center;align-items:center;}
+.eq-slot:active{transform:scale(.95);}
+.eq-slot .eq-empty{font-size:11px;color:var(--text2);}
+.eq-slot .eq-icon{font-size:20px;}
+.eq-slot .eq-name{font-size:12px;font-weight:600;margin-top:2px;}
+.eq-slot .eq-stats{font-size:9px;color:var(--text2);margin-top:2px;line-height:1.3;}
+.eq-item-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:8px 10px;margin-bottom:4px;display:flex;align-items:center;gap:8px;cursor:pointer;}
+.eq-item-card:active{transform:scale(.98);}
+.eq-item-card .eqi-icon{font-size:16px;}
+.eq-item-card .eqi-info{flex:1;}
+.eq-item-card .eqi-name{font-size:12px;font-weight:500;}
+.eq-item-card .eqi-sub{font-size:10px;color:var(--text2);}
+.eq-item-card .eqi-btn{font-size:10px;padding:3px 8px;border:none;border-radius:4px;cursor:pointer;font-family:inherit;font-weight:600;}
+.eq-item-card .eqi-btn.equip{background:var(--gold);color:#0A0A0F;}
+.eq-item-card .eqi-btn.unequip{background:rgba(255,255,255,.06);color:var(--text2);border:1px solid var(--border);}
+.skills-title{font-size:11px;color:var(--text2);margin-bottom:8px;}
+.skill-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:8px;padding:10px;margin-bottom:6px;}
+.skill-card:last-child{margin-bottom:0;}
+.skill-card .s-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;}
+.skill-card .s-name{font-size:14px;font-weight:600;}
+.skill-card .s-ring{font-size:9px;padding:1px 5px;border-radius:3px;}
+.skill-card .s-type{font-size:10px;color:var(--text2);margin-bottom:2px;}
+.skill-card .s-desc{font-size:11px;color:var(--text2);line-height:1.4;}
+.skill-card .s-effect{font-size:10px;color:var(--purple);margin-top:3px;padding:3px 6px;background:rgba(155,127,212,.08);border-radius:4px;display:inline-block;}
+.skills-empty{text-align:center;padding:20px 0;color:var(--text2);font-size:13px;}
+.map-container{position:relative;width:100%;aspect-ratio:1/1.3;background:var(--card);border:1px solid var(--border);border-radius:12px;margin-bottom:10px;overflow:hidden;}
+.region-marker{position:absolute;padding:4px 8px;border-radius:6px;font-size:10px;font-weight:500;cursor:pointer;transform:translate(-50%,-50%);transition:.2s;text-align:center;min-width:70px;border:1px solid rgba(255,255,255,.1);background:rgba(10,10,15,.88);}
+.region-marker:active{transform:translate(-50%,-50%) scale(1.08);}
+.region-marker.current{border-color:var(--gold);box-shadow:0 0 10px rgba(232,194,104,.3);}
+.region-marker .r-icon{font-size:16px;display:block;}
+.region-marker .r-name{font-size:10px;color:var(--text);margin-top:1px;}
+.region-marker.locked{opacity:.35;pointer-events:none;}
+.region-info{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px;}
+.region-info .ri-name{font-size:16px;font-weight:700;color:var(--gold);margin-bottom:2px;}
+.region-info .ri-desc{font-size:12px;color:var(--text2);}
+.region-info .ri-stats{display:flex;gap:16px;margin-top:6px;font-size:11px;color:var(--text2);}
+.region-info .ri-stats span{color:var(--text);}
+.travel-btn{width:100%;padding:12px;border:none;border-radius:10px;background:rgba(232,194,104,.12);border:1px solid var(--gold);color:var(--gold);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:10px;}
+.travel-btn:active{opacity:.7;}
+.actions-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;}
+.action-btn{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 4px;text-align:center;cursor:pointer;transition:.12s;font-family:inherit;color:var(--text);}
+.action-btn:active{transform:scale(.95);}
+.action-btn span{display:block;color:var(--text);}
+.action-btn .a-icon{font-size:20px;margin-bottom:1px;}
+.action-btn .a-label{font-size:12px;font-weight:500;}
+.action-btn .a-desc{font-size:9px;color:var(--text2);margin-top:1px;}
+.action-btn:disabled{opacity:.25;pointer-events:none;}
+.log-section{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px;min-height:150px;max-height:240px;overflow-y:auto;}
+.log-section::-webkit-scrollbar{width:3px;}
+.log-section::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+.log-entry{margin-bottom:7px;line-height:1.5;font-size:13px;animation:fadeIn .25s;}
+.log-entry:last-child{margin-bottom:0;}
+.log-entry .tag{display:inline-block;font-size:9px;padding:1px 5px;border-radius:3px;margin-right:5px;vertical-align:middle;font-weight:500;}
+.tag-system{background:rgba(232,194,104,.15);color:var(--gold);}
+.tag-cultivate{background:rgba(91,163,230,.15);color:var(--blue);}
+.tag-hunt{background:rgba(231,120,102,.15);color:var(--red);}
+.tag-ring{background:rgba(155,127,212,.15);color:var(--purple);}
+.tag-adventure{background:rgba(125,217,166,.15);color:var(--green);}
+.tag-death{background:rgba(255,82,82,.25);color:#FF5252;}
+.tag-break{background:linear-gradient(135deg,rgba(232,194,104,.25),rgba(196,162,90,.15));color:var(--gold);}
+.tag-skill{background:rgba(155,127,212,.2);color:#B388FF;}
+.tag-travel{background:rgba(91,163,230,.15);color:var(--blue);}
+.tag-time{background:rgba(232,194,104,.1);color:var(--gold-dim);}
+.tag-battle{background:rgba(255,82,82,.15);color:#FF8A80;}
+.tag-forge{background:rgba(125,217,166,.15);color:var(--green);}
+.break-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.88);z-index:101;justify-content:center;align-items:center;flex-direction:column;padding:20px;}
+.break-overlay.show{display:flex;}
+.break-overlay .big{font-size:26px;font-weight:900;color:var(--gold);margin-bottom:6px;text-align:center;}
+.break-overlay .sub{font-size:14px;color:var(--text);margin-bottom:14px;text-align:center;line-height:1.5;}
+.break-continue{padding:12px 32px;border:none;border-radius:10px;background:var(--gold);color:#0A0A0F;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;}
+
+/* 魂环详情弹出层 */
+.ring-detail-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.92);z-index:102;justify-content:center;align-items:center;flex-direction:column;padding:24px;}
+.ring-detail-overlay.show{display:flex;}
+.ring-detail-card{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:14px;padding:20px;width:100%;max-width:380px;max-height:70vh;overflow-y:auto;}
+.ring-detail-card::-webkit-scrollbar{width:3px;}
+.ring-detail-card::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+.rd-title{font-size:18px;font-weight:700;text-align:center;margin-bottom:12px;}
+.rd-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;}
+.rd-row:last-child{border-bottom:none;}
+.rd-row .rd-l{color:var(--text2);}
+.rd-row .rd-v{color:var(--text);font-weight:500;}
+.rd-skill{padding:10px;background:var(--card);border-radius:8px;margin-top:8px;}
+.rd-skill .rs-name{font-size:14px;font-weight:600;color:var(--gold);}
+.rd-skill .rs-type{font-size:11px;color:var(--text2);margin-top:2px;}
+.rd-skill .rs-effect{font-size:11px;color:var(--purple);margin-top:4px;padding:3px 6px;background:rgba(155,127,212,.08);border-radius:4px;display:inline-block;}
+.rd-close{margin-top:16px;width:100%;padding:12px;border:none;border-radius:10px;background:var(--gold);color:#0A0A0F;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;}
+.hunt-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.95);z-index:99;flex-direction:column;padding:16px;overflow-y:auto;}
+.hunt-overlay.show{display:flex;}
+.battle-top{text-align:center;padding:12px 0 8px;border-bottom:1px solid var(--border);margin-bottom:12px;}
+.battle-top .bt-label{font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:2px;}
+.battle-top .bt-title{font-size:24px;font-weight:900;color:var(--gold);margin:2px 0;}
+.battle-top .bt-sub{font-size:13px;color:var(--text2);}
+.battle-beast{text-align:center;padding:20px 0 16px;background:var(--card);border-radius:14px;border:1px solid var(--border);margin-bottom:12px;}
+.battle-beast .bb-icon{font-size:48px;margin-bottom:4px;}
+.battle-beast .bb-name{font-size:20px;font-weight:700;color:var(--text);}
+.battle-beast .bb-year{font-size:12px;color:var(--text2);margin-top:2px;}
+.battle-beast .bb-bar{width:80%;margin:8px auto 0;height:6px;border-radius:3px;background:rgba(255,255,255,.06);overflow:hidden;}
+.battle-beast .bb-fill{height:100%;border-radius:3px;background:var(--red);transition:width .5s;}
+.battle-beast .bb-stat{font-size:11px;color:var(--text2);margin-top:4px;}
+
+.battle-info{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
+.battle-info .bi-card{background:var(--card);border-radius:10px;padding:10px;text-align:center;border:1px solid var(--border);}
+.battle-info .bi-card .bi-label{font-size:10px;color:var(--text2);}
+.battle-info .bi-card .bi-val{font-size:20px;font-weight:700;}
+.battle-info .bi-card .bi-val.gold{color:var(--gold);}
+.battle-info .bi-card .bi-val.green{color:var(--green);}
+
+.battle-log{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:12px;min-height:80px;max-height:200px;overflow-y:auto;}
+.battle-log::-webkit-scrollbar{width:3px;}
+.battle-log::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+.battle-log .bl-round{padding:6px 8px;margin-bottom:6px;background:rgba(255,255,255,.02);border-radius:8px;animation:fadeIn .3s;}
+.battle-log .bl-round:last-child{margin-bottom:0;}
+.battle-log .bl-round .bl-rh{font-size:10px;color:var(--gold);font-weight:600;margin-bottom:3px;}
+.battle-log .bl-round .bl-action{font-size:13px;color:var(--text);}
+.battle-log .bl-round .bl-effect{font-size:11px;color:var(--purple);margin-top:2px;}
+.battle-log .bl-round .bl-dmg{font-size:11px;color:var(--red);}
+
+.battle-result-box{text-align:center;padding:14px;margin-bottom:12px;border-radius:12px;}
+.battle-result-box.success{background:rgba(125,217,166,.08);border:1px solid rgba(125,217,166,.15);}
+.battle-result-box.fail{background:rgba(224,120,102,.08);border:1px solid rgba(224,120,102,.15);}
+.battle-result-box .br-icon{font-size:28px;}
+.battle-result-box .br-text{font-size:16px;font-weight:700;margin:4px 0;}
+.battle-result-box .br-text.ok{color:var(--green);}
+.battle-result-box .br-text.no{color:var(--red);}
+.battle-result-box .br-sub{font-size:12px;color:var(--text2);}
+
+.battle-footer{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px;}
+.battle-footer.single{grid-template-columns:1fr;}
+.bf-btn{padding:14px;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;}
+.bf-btn:active{opacity:.7;}
+.bf-btn.primary{background:linear-gradient(135deg,#E8C268,#C4A25A);color:#0A0A0F;}
+.bf-btn.secondary{background:var(--card);border:1px solid var(--border);color:var(--text2);}
+.bf-btn.danger{background:rgba(231,120,102,.15);border:1px solid rgba(231,120,102,.2);color:var(--red);}
+#endScreen{display:none;text-align:center;padding-top:40px;}
+#endScreen .ei{font-size:48px;margin-bottom:10px;}
+.end-t{font-size:22px;font-weight:700;color:var(--gold);margin-bottom:6px;}
+.end-s{font-size:13px;color:var(--text2);line-height:1.5;margin-bottom:18px;}
+.end-stats{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:18px;text-align:left;}
+.end-stats .row{display:flex;justify-content:space-between;padding:5px 0;font-size:13px;border-bottom:1px solid var(--border);}
+.end-stats .row:last-child{border-bottom:none;}
+.end-stats .row .label{color:var(--text2);}
+.end-stats .row .value{color:var(--text);font-weight:500;}
+.restart-btn{width:100%;padding:16px;border:none;border-radius:12px;background:linear-gradient(135deg,#E8C268,#C4A25A);color:#0A0A0F;font-size:17px;font-weight:700;cursor:pointer;font-family:inherit;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- 启动画面 -->
+<div id="startScreen">
+  <div class="start-logo">⚔ 斗罗·岁月</div>
+  <div class="start-sub">修炼模拟器 — 岁月铸魂，修炼成神</div>
+  <input class="start-input" id="nameInput" placeholder="输入你的魂师之名" maxlength="8">
+  <button class="start-btn" id="awakenBtn">觉醒武魂</button>
+  <div class="start-hint">每位魂师的先天魂力和天赋都是随机的</div>
+</div>
+
+<!-- 武魂觉醒弹窗 -->
+<div class="awaken-overlay" id="awakenOverlay">
+  <div class="awaken-title">⚡ 武魂觉醒</div>
+  <div class="awaken-sub" id="awakenName">—</div>
+  <div class="awaken-sp" id="awakenSpBox">
+    <div class="sp-num" id="awakenSpNum">—</div>
+    <div class="sp-label">先天魂力</div>
+    <div class="sp-rarity" id="awakenSpRarity">—</div>
+  </div>
+  <div class="awaken-ms" id="awakenMsBox">
+    <div class="ms-icon" id="awakenMsIcon">⚔</div>
+    <div class="ms-name" id="awakenMsName">—</div>
+    <div class="ms-type" id="awakenMsType">—</div>
+    <div class="ms-effect" id="awakenMsEffect">—</div>
+  </div>
+  <div class="awaken-talents" id="awakenTalents"></div>
+  <button class="awaken-continue" id="awakenStart">开始修炼</button>
+</div>
+
+<!-- 游戏主界面 -->
+<div id="gameScreen">
+  <div class="top-bar">
+    <div class="left">
+      <div class="top-ms" id="gMs">—</div>
+      <div class="name" id="gName">—</div>
+      <div class="age" id="gAge">年龄: —</div>
+    </div>
+    <div class="year" id="gYear">第 0 年 · <span id="gRegion">圣魂村</span></div>
+  </div>
+
+  <div class="talents-bar" id="talentsBar"></div>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="status">状态</div>
+    <div class="tab" data-tab="skills">魂技</div>
+    <div class="tab" data-tab="map">地图</div>
+    <div class="tab" data-tab="action">行动</div>
+    <div class="tab" data-tab="equip">装备</div>
+  </div>
+
+  <div class="tab-content active" id="tab-status">
+    <div class="stats-grid">
+      <div class="stat-card stat-level">
+        <div class="stat-label">修为</div>
+        <div class="stat-value" id="gLevel">魂士</div>
+        <div class="stat-bar"><div class="stat-fill gold" id="spBar" style="width:0%"></div></div>
+        <div class="stat-sub">魂力 <span id="gSP">0</span> / <span id="gSPMax">10</span></div>
+      </div>
+      <div class="stat-card stat-life">
+        <div class="stat-label">寿命上限</div>
+        <div class="stat-value" id="gLife">80 岁</div>
+        <div class="stat-bar"><div class="stat-fill green" id="lifeBar" style="width:100%"></div></div>
+        <div class="stat-sub" id="gLifeSub">已过世</div>
+      </div>
+      <div class="stat-card stat-hp">
+        <div class="stat-label">气血</div>
+        <div class="stat-value" id="gHP">100</div>
+        <div class="stat-bar"><div class="stat-fill green" id="hpBar" style="width:100%"></div></div>
+        <div class="stat-sub" id="gHPSub">状态: 良好</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">战力</div>
+        <div class="stat-value" id="gCombat">10</div>
+        <div class="stat-sub">魂环 <span id="gRingCount">0</span> · 魂技 <span id="gSkillCount">0</span></div>
+      </div>
+    </div>
+    <div class="rings-section">
+      <div class="rings-header">
+        <div class="rings-title">⚡ 魂环（<span id="ringCap">9</span>格）</div>
+        <div class="rings-hunt" id="gHuntHint">—</div>
+      </div>
+      <div class="rings-row" id="ringsRow"></div>
+    </div>
+    <div class="rings-section" id="boneSection">
+      <div class="rings-header">
+        <div class="rings-title">🦴 魂骨</div>
+        <div class="rings-hunt" id="gBoneHint">—</div>
+      </div>
+      <div id="boneList"><div style="color:var(--text2);font-size:12px;text-align:center;padding:6px 0">尚未获得魂骨</div></div>
+    </div>
+  </div>
+
+  <div class="tab-content" id="tab-skills">
+    <div class="skills-section">
+      <div class="skills-title">📜 已领悟魂技</div>
+      <div id="skillsList"><div class="skills-empty">尚未拥有任何魂技<br>吸收魂环后自动领悟</div></div>
+    </div>
+  </div>
+
+  <div class="tab-content" id="tab-map">
+    <div class="map-container" id="mapContainer">
+      <div class="map-bg" id="mapBg"></div>
+    </div>
+    <div class="region-info" id="regionInfo">
+      <div class="ri-name" id="riName">圣魂村</div>
+      <div class="ri-desc" id="riDesc">宁静的新手村落</div>
+      <div class="ri-stats"><span>需求: <span id="riLevel">魂士</span></span><span>魂兽: <span id="riBeast">1-100年</span></span></div>
+    </div>
+    <button class="travel-btn" id="travelBtn">🚶 前往此地</button>
+  </div>
+
+  <div class="tab-content" id="tab-action">
+    <div class="actions-grid">
+      <button class="action-btn" data-act="cultivate"><span class="a-icon">🧘</span><span class="a-label">修炼</span><span class="a-desc">3-6月</span></button>
+      <button class="action-btn" data-act="hunt"><span class="a-icon">⚔</span><span class="a-label">猎魂</span><span class="a-desc">6-12月</span></button>
+      <button class="action-btn" data-act="absorb"><span class="a-icon">💫</span><span class="a-label">吸收</span><span class="a-desc">2-4月</span></button>
+      <button class="action-btn" data-act="adventure"><span class="a-icon">🗺</span><span class="a-label">历练</span><span class="a-desc">3-8月</span></button>
+      <button class="action-btn" data-act="rest"><span class="a-icon">💤</span><span class="a-label">休养</span><span class="a-desc">2-4月</span></button>
+      <button class="action-btn" data-act="forge"><span class="a-icon">💪</span><span class="a-label">锻体</span><span class="a-desc">3-6月</span></button>
+      <button class="action-btn" data-act="pill"><span class="a-icon">💊</span><span class="a-label">炼药</span><span class="a-desc">2-5月</span></button>
+    </div>
+    <div class="log-section" id="logSection">
+      <div class="log-entry"><span class="tag tag-system">系统</span>踏上魂师之路...</div>
+    </div>
+  </div>
+  <div class="tab-content" id="tab-equip">
+    <div class="eq-grid">
+      <div id="eqSlots"></div>
+      <button class="eq-sort-btn" id="eqBackpackToggle" style="width:100%;padding:8px;border:none;border-radius:8px;background:var(--card);border:1px solid var(--border);color:var(--text);font-size:13px;cursor:pointer;font-family:inherit;margin-bottom:8px">📦 背包 (<span id="backpackCount">0</span>)</button>
+      <div id="eqBackpack"></div>
+    </div>
+  </div>
+</div>
+
+<div id="endScreen">
+  <div class="ei" id="endIcon">🕊</div>
+  <div class="end-t" id="endTitle">魂归天地</div>
+  <div class="end-s" id="endSub">你的魂师之路走到了终点</div>
+  <div class="end-stats" id="endStatsBox"></div>
+  <button class="restart-btn" id="restartBtn">再世为人</button>
+  <button class="restart-btn" id="randomRestartBtn" style="margin-top:8px;background:rgba(232,194,104,.1);border:1px solid var(--gold);color:var(--gold)">🎲 立即随机重开</button>
+</div>
+
+<div class="break-overlay" id="breakOverlay">
+  <div class="big" id="breakTitle">突破！</div>
+  <div class="sub" id="breakSub">修为大进</div>
+  <button class="break-continue" id="breakContinue">继续修炼</button>
+</div>
+
+<!-- 魂环详情弹出 -->
+<div class="ring-detail-overlay" id="ringDetailOverlay">
+  <div class="ring-detail-card" id="ringDetailCard">
+    <div class="rd-title" id="rdTitle">魂环详情</div>
+    <div id="rdContent"></div>
+    <button class="rd-close" id="rdClose">关闭</button>
+  </div>
+</div>
+
+<!-- 吸收魂环确认弹窗 -->
+<div class="break-overlay" id="abConfirmOverlay">
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px;width:100%;max-width:340px;">
+    <div style="font-size:18px;font-weight:700;color:var(--gold);text-align:center;margin-bottom:4px">💫 吸收魂环</div>
+    <div style="font-size:14px;text-align:center;color:var(--text);margin-bottom:12px" id="abConfirmTitle">—</div>
+    <div style="font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:16px;padding:12px;background:rgba(255,255,255,.02);border-radius:8px" id="abConfirmInfo">—</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <button class="bf-btn primary" id="abDoBtn">🔄 开始吸收</button>
+      <button class="bf-btn secondary" id="abDropBtn">✗ 放弃魂环</button>
+    </div>
+  </div>
+</div>
+
+<!-- 炼药选择弹窗 -->
+<div class="break-overlay" id="pillOverlay">
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;width:100%;max-width:360px;max-height:80vh;overflow-y:auto;">
+    <div style="font-size:18px;font-weight:700;color:var(--gold);text-align:center;margin-bottom:12px">💊 选择丹药</div>
+    <div id="pillList"></div>
+    <button class="rd-close" id="pillClose" style="margin-top:8px">取消炼药</button>
+  </div>
+</div>
+
+<div class="hunt-overlay" id="huntOverlay">
+  <div class="battle-top">
+    <div class="bt-label">⚔ 猎魂之战</div>
+    <div class="bt-title" id="btTitle">遭遇魂兽</div>
+    <div class="bt-sub" id="btSub">—</div>
+  </div>
+  <div class="battle-beast">
+    <div class="bb-icon">🐾</div>
+    <div class="bb-name" id="bbName">—</div>
+    <div class="bb-year" id="bbYear">—</div>
+    <div class="bb-bar"><div class="bb-fill" id="bbBar" style="width:100%"></div></div>
+    <div class="bb-stat" id="bbStat">—</div>
+  </div>
+  <div class="battle-info">
+    <div class="bi-card"><div class="bi-label">你的战力</div><div class="bi-val gold" id="biPlayerCP">0</div></div>
+    <div class="bi-card"><div class="bi-label">魂兽战力</div><div class="bi-val" id="biBeastCP" style="color:var(--red)">0</div></div>
+  </div>
+  <div class="battle-log" id="battleLog">
+    <div style="text-align:center;color:var(--text2);padding:12px;font-size:13px">⚔ 战斗即将开始...</div>
+  </div>
+  <div class="battle-result-box" id="battleResultBox">
+    <div class="br-icon" id="brIcon">—</div>
+    <div class="br-text" id="brText">—</div>
+    <div class="br-sub" id="brSub">—</div>
+  </div>
+  <div class="battle-replace" id="battleReplace" style="display:none;margin-bottom:12px">
+    <div style="font-size:12px;color:var(--gold);margin-bottom:6px;text-align:center">⚠ 发现同部位魂骨 · 是否替换？</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <button class="bf-btn danger" id="btReplace">⚔ 冒险替换</button>
+      <button class="bf-btn secondary" id="btKeep">✗ 保留旧骨</button>
+    </div>
+  </div>
+  <div class="battle-footer single" id="battleFooter">
+    <button class="bf-btn primary" id="btFinish">继续修炼</button>
+  </div>
+</div>
+
+</div>
+<script>
+// ====== 数据 ======
+const LN=['魂士','魂师','大魂师','魂尊','魂宗','魂王','魂帝','魂圣','魂斗罗','封号斗罗'];
+const RN=['低级','百年','千年','万年','十万年','百万年'];
+const RC=['ring-white','ring-yellow','ring-purple','ring-black','ring-red','ring-gold'];
+const RL=['○','百','千','万','十','神'];
+const SP_TH=[10,20,30,40,50,60,70,80,90,100];
+const LIFESPAN=[80,100,130,180,250,350,500,700,1000,1500];
+const REGIONS=[
+  {id:0,name:'圣魂村',icon:'🏘',desc:'宁静的新手村落',minLv:0,beastMin:1,beastMax:100,x:50,y:82},
+  {id:1,name:'诺丁城外',icon:'🌲',desc:'初级魂师猎场',minLv:0,beastMin:100,beastMax:800,x:30,y:60},
+  {id:2,name:'猎魂森林',icon:'🌳',desc:'魂师试炼之地',minLv:1,beastMin:500,beastMax:3000,x:70,y:55},
+  {id:3,name:'星斗大森林',icon:'🌿',desc:'凶兽横行之地',minLv:2,beastMin:1000,beastMax:15000,x:35,y:38},
+  {id:4,name:'落日森林',icon:'🌅',desc:'千年魂兽禁区',minLv:3,beastMin:5000,beastMax:40000,x:65,y:30},
+  {id:5,name:'极北冰原',icon:'❄',desc:'万年寒冰之地',minLv:5,beastMin:10000,beastMax:80000,x:20,y:22},
+  {id:6,name:'海神岛',icon:'🌊',desc:'神圣试炼之所',minLv:6,beastMin:30000,beastMax:150000,x:80,y:18},
+  {id:7,name:'杀戮之都',icon:'💀',desc:'地狱级修罗场',minLv:7,beastMin:50000,beastMax:1000000,x:50,y:8}
+];
+
+// 先天天赋配置
+const TALENTS=[
+  {id:'twin',name:'双生武魂',icon:'⚔⚔',desc:'主武魂九环完成后切换副武魂·副武魂年限≥主武魂最后一环',rate:0.03,rarity:'legendary'},
+  {id:'full',name:'先天满魂力',icon:'💫',desc:'初始魂力10级，修炼速度+15%',rate:0.08,rarity:'rare'},
+  {id:'top',name:'顶级武魂',icon:'👑',desc:'修炼获取魂力+40%，战力+30',rate:0.10,rarity:'rare'},
+  {id:'mutant',name:'变异武魂',icon:'🌀',desc:'魂技状态效果触发率+30%',rate:0.12,rarity:'uncommon'},
+  {id:'bone',name:'先天魂骨',icon:'🦴',desc:'初始气血+50，战力+20',rate:0.05,rarity:'rare'},
+  {id:'purple',name:'紫极魔瞳',icon:'👁',desc:'猎魂成功率+8%，战力+15',rate:0.07,rarity:'uncommon'},
+  {id:'mystic',name:'玄天功',icon:'📖',desc:'修炼效率+25%，炼药成功率+20%',rate:0.10,rarity:'uncommon'},
+  {id:'ocean',name:'海神眷顾',icon:'🌊',desc:'历练收益+30%，旅途中恢复气血',rate:0.05,rarity:'rare'},
+  {id:'food',name:'食神体质',icon:'🍲',desc:'炼药效果翻倍，炼药耗时减半',rate:0.08,rarity:'uncommon'},
+  {id:'jade',name:'九宝琉璃心',icon:'💎',desc:'辅助魂技+50%，休养效果翻倍',rate:0.06,rarity:'rare'},
+  {id:'shura',name:'修罗杀意',icon:'🔥',desc:'战力+25，猎魂成功后额外获得魂力',rate:0.04,rarity:'rare'}
+];
+
+// 武魂池（无概率，觉醒时必定随机获得一个）
+const MS_CATS={
+  beast:{name:'兽武魂',icon:'🐾',cls:'ms-beast',
+    souls:[
+      {n:'邪眸白虎',eff:'修炼速度+15%',apply:g=>g._msCult=0.15},
+      {n:'蓝电霸王龙',eff:'修炼速度+20%，吸收上限+20%',apply:g=>{g._msCult=0.20;g._msAbsorb=0.20;}},
+      {n:'火凤凰',eff:'修炼+15%,猎魂+5%,吸收+10%',apply:g=>{g._msCult=0.15;g._msHunt=0.05;g._msAbsorb=0.10;}},
+      {n:'幽冥灵猫',eff:'猎魂成功率+15%',apply:g=>g._msHunt=0.15},
+      {n:'柔骨兔',eff:'气血恢复+30%',apply:g=>g._msHeal=0.30},
+      {n:'碧磷蛇',eff:'状态效果+20%',apply:g=>g._msEff=0.20},
+      {n:'冰碧帝皇蝎',eff:'修炼+10%,战力+20,吸收+15%',apply:g=>{g._msCult=0.10;g._msCP=20;g._msAbsorb=0.15;}},
+      {n:'泰坦巨猿',eff:'战力+40,吸收+25%',apply:g=>{g._msCP=40;g._msAbsorb=0.25;}},
+      {n:'暗金恐爪熊',eff:'猎魂+10%,战力+20,吸收+15%',apply:g=>{g._msHunt=0.10;g._msCP=20;g._msAbsorb=0.15;}},
+      {n:'紫翼独角兽',eff:'炼药+15%,修炼+10%',apply:g=>{g._msPill=0.15;g._msCult=0.10;}}
+    ]},
+  weapon:{name:'器武魂',icon:'⚔',cls:'ms-weapon',
+    souls:[
+      {n:'昊天锤',eff:'战力+40,猎魂+10%,吸收+20%',apply:g=>{g._msCP=40;g._msHunt=0.10;g._msAbsorb=0.20;}},
+      {n:'七杀剑',eff:'战力+30,修炼+10%,吸收+15%',apply:g=>{g._msCP=30;g._msCult=0.10;g._msAbsorb=0.15;}},
+      {n:'海神三叉戟',eff:'猎魂+15%,战力+25,吸收+30%',apply:g=>{g._msHunt=0.15;g._msCP=25;g._msAbsorb=0.30;}},
+      {n:'修罗神剑',eff:'状态效果+25%',apply:g=>g._msEff=0.25},
+      {n:'八蛛矛',eff:'猎魂+10%,状态+10%,吸收+15%',apply:g=>{g._msHunt=0.10;g._msEff=0.10;g._msAbsorb=0.15;}},
+      {n:'九节翡翠竹',eff:'炼药+25%',apply:g=>g._msPill=0.25},
+      {n:'破魂枪',eff:'战力+35',apply:g=>g._msCP=35},
+      {n:'盘龙棍',eff:'修炼+15%',apply:g=>g._msCult=0.15}
+    ]},
+  plant:{name:'植物系武魂',icon:'🌿',cls:'ms-plant',
+    souls:[
+      {n:'蓝银草',eff:'修炼+10%,炼药+10%（但吸收上限-15%）',apply:g=>{g._msCult=0.10;g._msPill=0.10;g._msAbsorb=-0.15;}},
+      {n:'幽香绮罗仙品',eff:'炼药+30%',apply:g=>g._msPill=0.30},
+      {n:'相思断肠红',eff:'气血上限+80',apply:g=>g._msHP=80},
+      {n:'烈火杏娇疏',eff:'修炼+20%,战力+15',apply:g=>{g._msCult=0.20;g._msCP=15;}},
+      {n:'八瓣仙兰',eff:'修炼+25%',apply:g=>g._msCult=0.25},
+      {n:'水晶血龙参',eff:'气血恢复+50%,战力+10',apply:g=>{g._msHeal=0.50;g._msCP=10;}}
+    ]},
+  special:{name:'特殊武魂',icon:'✨',cls:'ms-special',
+    souls:[
+      {n:'六翼天使',eff:'全属性+15%',apply:g=>{g._msCult=0.15;g._msHunt=0.15;g._msPill=0.15;}},
+      {n:'罗三炮',eff:'状态效果+30%（变异）',apply:g=>g._msEff=0.30},
+      {n:'本体·灵眸',eff:'猎魂+20%',apply:g=>g._msHunt=0.20},
+      {n:'本体·骨',eff:'战力+50',apply:g=>g._msCP=50},
+      {n:'九心海棠',eff:'气血恢复+100%',apply:g=>g._msHeal=1.0},
+      {n:'七位一体',eff:'修炼+30%,状态+10%',apply:g=>{g._msCult=0.30;g._msEff=0.10;}}
+    ]}
+};
+
+// 魂兽
+const BEASTS=[
+  {n:'幽冥狼',min:10,max:300},{n:'风隼',min:50,max:400},{n:'铁甲犀',min:100,max:500},{n:'青竹蛇',min:10,max:200},
+  {n:'疾风獒',min:80,max:400},{n:'岩甲龟',min:150,max:600},{n:'赤火雀',min:50,max:350},{n:'冰牙兔',min:10,max:150},
+  {n:'碎石熊',min:100,max:500},{n:'影猫',min:30,max:250},{n:'枯木藤妖',min:100,max:450},{n:'银月狼',min:80,max:500},
+  {n:'翠晶蝶',min:10,max:100},{n:'钢鬃野猪',min:200,max:700},{n:'闪电貂',min:100,max:400},{n:'厚土蟒',min:200,max:600},
+  {n:'火羽雉',min:150,max:500},{n:'冰狼',min:100,max:450},{n:'岩石傀儡',min:300,max:800},{n:'毒吻蛛',min:50,max:350},
+  {n:'金环蛇',min:200,max:600},{n:'暴风隼',min:300,max:700},{n:'铁爪鹰',min:200,max:600},{n:'霜牙虎',min:300,max:750},
+  {n:'人面魔蛛',min:500,max:2000},{n:'火鳞蟒',min:600,max:2500},{n:'紫翼蝠',min:500,max:1800},{n:'金刚猿',min:800,max:3000},
+  {n:'水晶蝎',min:600,max:2000},{n:'三尾狐',min:500,max:1500},{n:'墨玉蟒',min:800,max:2500},{n:'赤焰狮',min:1000,max:3000},
+  {n:'银背狼王',min:800,max:2800},{n:'碧磷蛇',min:500,max:2000},{n:'雷霆鹰',min:1000,max:3000},{n:'花岗岩巨人',min:1200,max:3000},
+  {n:'泰坦巨猿',min:3000,max:15000},{n:'天青牛蟒',min:5000,max:15000},{n:'暗金恐爪熊',min:3000,max:12000},{n:'幽冥白虎',min:2000,max:10000},
+  {n:'八蛛矛蛛',min:1000,max:8000},{n:'紫电魔雕',min:2000,max:10000},{n:'大地魔熊',min:3000,max:12000},{n:'千钧蚁皇',min:4000,max:12000},
+  {n:'三头赤魔獒',min:5000,max:15000},{n:'鬼虎',min:1000,max:8000},{n:'嗜血魔猿',min:3000,max:10000},{n:'水晶巨兽',min:4000,max:15000},
+  {n:'翠魔鸟',min:1000,max:5000},{n:'炎魔狮',min:3000,max:10000},{n:'冰晶魔蝎',min:2000,max:8000},{n:'黄金狮鹫',min:5000,max:15000},
+  {n:'赤王',min:10000,max:35000},{n:'冰帝·蝎',min:15000,max:40000},{n:'暗金恐爪熊王',min:10000,max:30000},{n:'暗魔邪神虎',min:10000,max:35000},
+  {n:'妖眼魔树',min:5000,max:20000},{n:'粉红娘娘',min:8000,max:25000},{n:'冥王蛛',min:8000,max:28000},{n:'焚天炎龙',min:15000,max:40000},
+  {n:'冰碧帝皇蝎',min:20000,max:70000},{n:'雪帝',min:30000,max:80000},{n:'冰熊王',min:15000,max:60000},{n:'冰霜巨龙',min:25000,max:75000},
+  {n:'深海魔鲸王',min:50000,max:150000},{n:'魔魂大白鲨',min:30000,max:100000},{n:'邪魔虎鲸',min:20000,max:80000},{n:'怒涛龙鲸',min:40000,max:120000},
+  {n:'海龙',min:50000,max:150000},{n:'海神守护兽',min:60000,max:150000},{n:'修罗魔猿',min:50000,max:200000},{n:'杀戮魔蛛',min:50000,max:150000},
+  {n:'深渊魔龙',min:80000,max:300000},{n:'血狱九头蛇',min:80000,max:250000},{n:'冥界凤凰',min:80000,max:300000},{n:'深渊领主',min:100000,max:400000},
+  {n:'混沌饕餮',min:100000,max:500000},{n:'古神魔鲸',min:150000,max:500000},{n:'虚空螭龙',min:100000,max:350000},{n:'末日炎魔',min:80000,max:300000},
+  {n:'神·深渊领主',min:500000,max:1000000},{n:'太古神龙',min:500000,max:1000000},{n:'神·混沌饕餮',min:600000,max:1000000},{n:'神·古神魔鲸',min:600000,max:1000000},{n:'创世神蟒',min:500000,max:1000000},{n:'神兽麒麟',min:500000,max:1000000},{n:'神·虚空螭龙',min:600000,max:1000000},{n:'神·末日炎魔',min:500000,max:1000000}
+];
+
+// 魂技
+const SKILLS_DATA={
+  attack:[
+    {n:'撕天裂地爪',e:'撕裂',p:11},{n:'九阳烈焰斩',e:'灼烧',p:12},{n:'万雷天牢引',e:'麻痹',p:12},{n:'碎星破灭拳',e:'震伤',p:11},
+    {n:'空痕裂空刃',e:'撕裂',p:10},{n:'崩山击',e:'震伤',p:9},{n:'龙啸九天破',e:'震慑',p:13},{n:'血月斩',e:'流血',p:10},
+    {n:'灭世红莲炎',e:'灼烧',p:13},{n:'寂灭天雷',e:'麻痹',p:11},{n:'破虚一剑',e:'穿透',p:12},{n:'风陨连击',e:'撕裂',p:9},
+    {n:'魔神碎骨爪',e:'流血',p:12},{n:'玄冰破',e:'冰冻',p:10},{n:'焚天怒焰',e:'灼烧',p:11},{n:'极光突刺',e:'穿透',p:10},
+    {n:'暗影绝杀',e:'中毒',p:11},{n:'烈阳焚天斩',e:'灼烧',p:13},{n:'七星碎月击',e:'震伤',p:10},{n:'天怒神罚',e:'震慑',p:14}
+  ],
+  defense:[
+    {n:'金刚不坏身',e:'护盾',p:9},{n:'玄武不动壁',e:'反伤',p:10},{n:'铁骨银衣',e:'坚韧',p:8},{n:'不动明王身',e:'护盾',p:11},
+    {n:'玄水冰晶障',e:'冰冻',p:9},{n:'厚土岩甲',e:'坚韧',p:8},{n:'星辰护体',e:'反伤',p:10},{n:'天罡护体气',e:'护盾',p:10},
+    {n:'龙鳞金甲',e:'反伤',p:11},{n:'寒冰护盾',e:'冰冻',p:9},{n:'圣光壁垒',e:'护盾',p:10},{n:'磐石之躯',e:'坚韧',p:8},
+    {n:'九转金身',e:'护盾',p:12},{n:'虚空屏障',e:'反伤',p:11},{n:'元素铠甲',e:'坚韧',p:9},{n:'神罗天征壁',e:'护盾',p:12}
+  ],
+  control:[
+    {n:'缚灵索命锁',e:'束缚',p:10},{n:'迟缓领域',e:'减速',p:8},{n:'精神震爆',e:'眩晕',p:11},{n:'迷幻天魔眼',e:'迷惑',p:10},
+    {n:'暗影束缚',e:'束缚',p:9},{n:'重力压制场',e:'减速',p:9},{n:'时空凝固',e:'定身',p:13},{n:'魂力震荡波',e:'眩晕',p:10},
+    {n:'蓝银囚笼',e:'束缚',p:10},{n:'精神穿刺',e:'眩晕',p:11},{n:'幻境迷踪',e:'迷惑',p:9},{n:'万蛛缠丝',e:'束缚',p:10},
+    {n:'心灵震爆',e:'恐惧',p:12},{n:'冰霜禁锢',e:'冰冻',p:10},{n:'暗夜罗网',e:'束缚',p:9},{n:'灵魂冲击波',e:'眩晕',p:11}
+  ],
+  support:[
+    {n:'生命源泉',e:'回复',p:9},{n:'魂力共振',e:'激昂',p:8},{n:'疾风灵步',e:'加速',p:7},{n:'清心明镜咒',e:'净化',p:8},
+    {n:'涅槃再生术',e:'回复',p:12},{n:'斗魂激发',e:'激昂',p:9},{n:'蓝银祝福',e:'回复',p:8},{n:'血魂共鸣',e:'激昂',p:8},
+    {n:'天使守护',e:'护盾',p:10},{n:'森罗万象',e:'回复',p:9},{n:'九心海棠',e:'回复',p:11},{n:'战神附体',e:'激昂',p:10},
+    {n:'月华洗礼',e:'净化',p:9},{n:'凤凰涅槃炎',e:'回复',p:12},{n:'灵愈之光',e:'回复',p:8},{n:'狂暴激发',e:'激昂',p:10}
+  ],
+  special:[
+    {n:'武魂真身降临',e:'巨幅增强',p:15},{n:'死亡领域',e:'恐惧',p:14},{n:'修罗血怒',e:'吸血',p:14},{n:'时空逆流',e:'定身',p:15},
+    {n:'神魔降世',e:'恐惧',p:16},{n:'万剑归宗阵',e:'穿透',p:14},{n:'天罗地网',e:'束缚',p:12},{n:'寂灭轮回',e:'即死',p:16},
+    {n:'昊天神锤',e:'震伤',p:15},{n:'海神三叉戟',e:'穿透',p:15},{n:'天使圣剑',e:'灼烧',p:13},{n:'修罗魔剑',e:'流血',p:14},
+    {n:'九彩神光',e:'全属性',p:15},{n:'元圣归一',e:'巨幅增强',p:16},{n:'混沌开天',e:'即死',p:17},{n:'创世神辉',e:'净化',p:16}
+  ]
+};
+const ST=Object.keys(SKILLS_DATA);
+const EFF_DESC={
+  '撕裂':'持续流血','灼烧':'灼烧魂兽','麻痹':'神经麻痹','震伤':'内伤震荡','流血':'伤口失血','震慑':'威压震慑','穿透':'无视防御',
+  '冰冻':'冻结减缓','中毒':'毒素侵蚀','护盾':'减少伤害','反伤':'反弹伤害','坚韧':'提升韧性','束缚':'限制行动',
+  '减速':'降低速度','眩晕':'失去意识','迷惑':'扰乱感知','定身':'完全定身','恐惧':'魂兽恐惧','回复':'恢复气血',
+  '激昂':'激发潜能','加速':'提升速度','净化':'移除负面','吸血':'吸收气血','巨幅增强':'大幅提升','即死':'几率击杀','全属性':'全面提升'
+};
+const EFF_BONUS={'撕裂':0.04,'灼烧':0.05,'麻痹':0.06,'震伤':0.05,'流血':0.04,'震慑':0.07,'穿透':0.06,'冰冻':0.07,'中毒':0.04,'护盾':-0.05,'反伤':0.03,'坚韧':0.02,'束缚':0.07,'减速':0.05,'眩晕':0.10,'迷惑':0.06,'定身':0.12,'恐惧':0.08,'回复':-0.03,'激昂':0.06,'加速':0.04,'净化':0.02,'吸血':0.03,'巨幅增强':0.10,'即死':0.12,'全属性':0.08};
+
+// 装备系统
+const EQ_SLOTS=[
+  {key:'head',name:'头盔',icon:'🪖',desc:'头部魂导器·精神防御'},
+  {key:'armor',name:'护甲',icon:'🛡',desc:'上身魂导器·物理防御'},
+  {key:'legs',name:'护腿',icon:'👖',desc:'下身魂导器·平衡防护'},
+  {key:'boots',name:'靴子',icon:'🥾',desc:'脚部魂导器·速度加成'},
+  {key:'necklace',name:'项链',icon:'📿',desc:'魂导饰品·精神增幅'},
+  {key:'ring',name:'戒指',icon:'💍',desc:'魂导饰品·能量汇聚'}
+];
+const EQ_RARITY=['普通','精良','稀有','史诗','传说'];
+const EQ_RCOLOR=['#888','#5BA3E6','#9B7FD4','#E8C268','#FF6B6B'];
+const EQ_PREFIXES=['铁制','精钢','秘银','玄铁','星辰','暗金','海神','龙鳞'];
+const EQ_SUFFIXES=['守护','之力','庇护','之环','祝福','之魂'];
+
+function genEquipment(year){
+  const slot=EQ_SLOTS[Math.floor(Math.random()*EQ_SLOTS.length)];
+  const rarity=year<100?0:(year<1000?0:(year<10000?1:(year<100000?2:(year<500000?3:4))));
+  const r=Math.random();const finalRarity=r<0.6?rarity:Math.min(4,rarity+(r<0.85?1:2));
+  const prefix=EQ_PREFIXES[Math.floor(Math.random()*EQ_PREFIXES.length)];
+  const suffix=EQ_SUFFIXES[Math.floor(Math.random()*EQ_SUFFIXES.length)];
+  const name=prefix+slot.name+suffix;
+  const cp=Math.floor((finalRarity+1)*(3+Math.random()*5)+year/500);
+  const hp=Math.floor((finalRarity+1)*(5+Math.random()*10)+year/200);
+  const huntB=(finalRarity>=3?0.03:0)+(finalRarity>=4?0.05:0);
+  const cultB=(finalRarity>=3?0.03:0)+(finalRarity>=4?0.03:0);
+  const pillB=(finalRarity>=3?0.03:0)+(finalRarity>=4?0.05:0);
+  return {id:'eq_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),name,slot:slot.key,rarity:finalRarity,year,cp,hp,huntB,cultB,pillB};
+}
+function getEquipBonus(type){
+  if(!G.equipment)return 0;
+  let total=0;
+  Object.values(G.equipment).forEach(eq=>{if(eq&&eq[type])total+=eq[type];});
+  return total;
+}
+
+// 魂骨系统
+const BONE_PARTS=[
+  {name:'头骨',icon:'🧠',key:'boneHead',desc:'精神力+修炼效率'},
+  {name:'左臂骨',icon:'💪',key:'boneArmL',desc:'左臂力量+战力'},
+  {name:'右臂骨',icon:'💪',key:'boneArmR',desc:'右臂力量+战力'},
+  {name:'左腿骨',icon:'🦵',key:'boneLegL',desc:'速度+猎魂成功率'},
+  {name:'右腿骨',icon:'🦵',key:'boneLegR',desc:'速度+猎魂成功率'},
+  {name:'躯干骨',icon:'🛡',key:'boneTorso',desc:'防御+气血上限'},
+];
+const BONE_PREFIXES=['精神凝聚之','大力金刚之','疾风追月之','玄铁壁御之','暗影幽光之','星辰璀璨之','碧磷毒雾之','天青不朽之'];
+const BONE_SUFFIXES={head:['','·凝神','·冥想'],armL:['','·裂地','·碎岩'],armR:['','·开天','·破空'],legL:['','·逐风','·掠影'],legR:['','·追电','·踏云'],torso:['','·不朽','·磐石']};
+function soulBoneDropRate(year){
+  if(year<100) return 0.005;
+  if(year<1000) return 0.02;
+  if(year<10000) return 0.05;
+  if(year<100000) return 0.10;
+  return 0.20;
+}
+function rollSoulBone(year){
+  // 已拥有的部位不可重复获得
+  const ownedKeys=new Set(G.soulBones.map(sb=>sb.key));
+  // 外附魂骨（独立计算）
+  const hasExternal=ownedKeys.has('boneExternal');
+  if(!hasExternal&&year>=10000&&Math.random()<0.02)
+    return {name:'外附·八蛛矛',type:'外附魂骨',icon:'⚡',key:'boneExternal',desc:`${year}年外附魂骨，全属性提升`,year:year};
+  
+  // 过滤可用的部位
+  const available=BONE_PARTS.filter(p=>!ownedKeys.has(p.key));
+  if(available.length===0) return null; // 六部位集齐了
+  
+  const part=available[Math.floor(Math.random()*available.length)];
+  const prefix=BONE_PREFIXES[Math.floor(Math.random()*BONE_PREFIXES.length)];
+  const suffixMap={head:'head',armL:'armL',armR:'armR',legL:'legL',legR:'legR',torso:'torso'};
+  const suffixKey=suffixMap[part.key]||'head';
+  const suffixes=BONE_SUFFIXES[suffixKey]||[''];
+  const suffix=suffixes[Math.floor(Math.random()*suffixes.length)];
+  const fullName=prefix+part.name+suffix;
+  return {name:fullName,type:part.name,icon:part.icon,key:part.key,desc:part.desc,year:year};
+}
+
+// ====== 游戏状态 ======
+let G=null;
+
+function rollInnateSoulPower(){
+  // 加权随机：1-3(15%) 4-7(55%) 8-9(20%) 10(10%)
+  const r=Math.random();
+  if(r<0.15) return Math.floor(Math.random()*3)+1;
+  if(r<0.70) return Math.floor(Math.random()*4)+4;
+  if(r<0.90) return Math.floor(Math.random()*2)+8;
+  return 10;
+}
+
+function rollTalents(){
+  const result=[];
+  TALENTS.forEach(t=>{if(Math.random()<t.rate)result.push({...t});});
+  // 随机武魂
+  const cats=Object.keys(MS_CATS);
+  const cat=MS_CATS[cats[Math.floor(Math.random()*cats.length)]];
+  const soul=cat.souls[Math.floor(Math.random()*cat.souls.length)];
+  return {talents:result,ms:{cat:cat.name,icon:cat.icon,cls:cat.cls,...soul}};
+}
+
+function initGame(name, innate, rollResult){
+  const talents=rollResult.talents||rollResult;
+  const ms=rollResult.ms||{n:'蓝银草',cat:'植物系武魂',icon:'🌿',cls:'ms-plant',eff:'',apply:()=>{}};
+  const isTwin=talents.some(t=>t.id==='twin');
+  G={
+    name, ageMonths:72, elapsedMonths:0,
+    level:0, soulPower:innate, innateSP:innate,
+    talents, ms,
+    soulRings:[], skills:[], usedSkillNames:[],
+    soulBones:[],
+    huntedRing:null, huntedBeast:'', huntedYear:0,
+    hp:100, maxHp:100, spPool:0,
+    region:0, unlockedRegions:[0],
+    alive:true,
+    _msCult:0,_msHunt:0,_msPill:0,_msHeal:0,_msEff:0,_msCP:0,_msAbsorb:0,
+    _pendingReplace:null,_huntBeast:null,_forgeHP:0,
+    equipment:{},backpack:[],
+    // 双生武魂专用
+    _msMode:'primary',_secondaryMs:null,_primaryMaxYear:0,_secondaryRings:0,
+    cC:0,hC:0,aC:0,rC:0,pC:0,fH:0
+  };
+  G.talents.forEach(t=>{
+    if(t.id==='bone'){ G.maxHp+=50; G.hp+=50; }
+    if(t.id==='full'){ G.soulPower=10; G.spPool+=5; }
+  });
+  if(ms.apply) ms.apply(G);
+  if(G._msHP) { G.maxHp+=G._msHP; G.hp+=G._msHP; }
+  // 双生武魂：生成第二武魂
+  if(isTwin){
+    const cats=Object.keys(MS_CATS);
+    let tries=0;
+    let secMs;
+    while(tries<20){
+      tries++;
+      const cat=MS_CATS[cats[Math.floor(Math.random()*cats.length)]];
+      const soul=cat.souls[Math.floor(Math.random()*cat.souls.length)];
+      if(soul.n!==ms.n){secMs=soul;secMs.cat=cat.name;secMs.icon=cat.icon;secMs.cls=cat.cls;break;}
+    }
+    if(!secMs) secMs={n:'昊天锤',cat:'器武魂',icon:'⚔',cls:'ms-weapon',eff:'备用武魂',apply:()=>{}};
+    G._secondaryMs=secMs;
+    G._msMode='primary';
+  }
+}
+
+function maxLifeYears(){return LIFESPAN[Math.min(G.level,LIFESPAN.length-1)];}
+// 各等级可吸收魂环年限上限（基础值）
+const MAX_ABSORB_YEAR=[0,400,800,2000,5000,10000,20000,50000,100000,1000000];
+function getRingLimit(){
+  if(!hasTalent('twin')) return 9;
+  return G._msMode==='primary'?9:999; // 副武魂无上限
+}
+function absorbYearBonus(){
+  let b=1.0;
+  if(hasTalent('twin')) b+=0.50;  // 双生武魂·体质特殊
+  if(hasTalent('bone')) b+=0.40;  // 先天魂骨·根基扎实
+  if(hasTalent('top')) b+=0.30;   // 顶级武魂·先天强横
+  if(hasTalent('mutant')) b+=0.25;// 变异武魂·不可预测
+  if(hasTalent('full')) b+=0.20;  // 满魂力·基础好
+  if(hasTalent('mystic')) b+=0.15;// 玄天功·可控性强
+  b+=G._msAbsorb||0; // 武魂自身特性
+  // 魂骨加成
+  if(G.soulBones.some(sb=>sb.key==='boneTorso')) b+=0.15;
+  if(G.soulBones.some(sb=>sb.key==='boneExternal')) b+=0.25;
+  return Math.max(0.3,b);
+}
+function maxAbsorbYear(){
+  const base=MAX_ABSORB_YEAR[Math.min(G.level,MAX_ABSORB_YEAR.length-1)];
+  return Math.floor(base*absorbYearBonus());
+}
+function absorbSuccessRate(year){
+  const maxY=G.level>=9?1000000*absorbYearBonus():maxAbsorbYear();
+  if(maxY<=0) return {rate:0,level:'无法吸收'};
+  const ratio=year/maxY;
+  if(ratio<=0.4) return {rate:1.0,level:'安全'};
+  if(ratio<=0.6) return {rate:0.85,level:'稳定'};
+  if(ratio<=0.75) return {rate:0.65,level:'挑战'};
+  if(ratio<=0.9) return {rate:0.45,level:'危险'};
+  if(ratio<=1.0) return {rate:0.25,level:'高危'};
+  return {rate:0.10,level:'致命'};
+}
+function spTh(){return SP_TH[Math.min(G.level,SP_TH.length-1)];}
+function curReg(){return REGIONS[G.region];}
+function ageStr(m){const y=Math.floor(m/12);const mo=m%12;return mo>0?y+'岁'+mo+'个月':y+'岁整';}
+function yearStr(m){const y=Math.floor(m/12);const mo=m%12;return y+'年'+mo+'个月';}
+
+function hasTalent(id){return G.talents.some(t=>t.id===id);}
+
+function combatPower(){
+  let bp=G.level*15+(G.soulPower+G.level*2)*2;
+  G.soulRings.forEach(r=>bp+=r.tier*5);
+  G.skills.forEach(s=>bp+=s.power*2);
+  if(hasTalent('top')) bp+=30;
+  if(hasTalent('bone')) bp+=20;
+  if(hasTalent('purple')) bp+=15;
+  if(hasTalent('shura')) bp+=25;
+  bp+=G._msCP||0;
+  bp+=getEquipBonus('cp');
+  // 魂骨战力加成
+  G.soulBones.forEach(sb=>{
+    if(sb.key==='boneArmL'||sb.key==='boneArmR') bp+=30;
+    if(sb.key==='boneLegL'||sb.key==='boneLegR') bp+=15;
+    if(sb.key==='boneHead') bp+=10;
+    if(sb.key==='boneTorso') bp+=20;
+    if(sb.key==='boneExternal') bp+=80;
+  });
+  return bp;
+}
+
+function cultivationMultiplier(){
+  let m=1.0;
+  if(hasTalent('top')) m+=0.4;
+  if(hasTalent('full')) m+=0.15;
+  if(hasTalent('mystic')) m+=0.25;
+  m+=G._msCult||0;
+  // 头骨加成
+  if(G.soulBones.some(sb=>sb.key==='boneHead')) m+=0.08;
+  if(G.soulBones.some(sb=>sb.key==='boneExternal')) m+=0.15;
+  m+=getEquipBonus('cultB');
+  return m;
+}
+
+function randMonth(min,max){return min+Math.floor(Math.random()*(max-min+1));}
+
+function pickBeast(){
+  const reg=curReg();
+  const pool=BEASTS.filter(b=>b.min<=reg.beastMax&&b.max>=reg.beastMin);
+  const beast=pool.length>0?pool[Math.floor(Math.random()*pool.length)]:{n:'未知魂兽',min:reg.beastMin,max:reg.beastMax};
+  const year=beast.min+Math.floor(Math.random()*(beast.max-beast.min));
+  const tier=year<100?0:(year<1000?1:(year<10000?2:(year<100000?3:(year<1000000?4:5))));
+  const power=Math.floor(year/80)+G.level*15;
+  const beastHp=Math.floor(power*2+year/20);
+  return {name:beast.n,year,tier,power,yearLabel:RN[tier]||'未知',hp:beastHp,maxHp:beastHp};
+}
+
+function generateSkill(ringYear){
+  let pool;
+  if(ringYear>=5) pool=['special','special','special','special','attack','support'];
+  else if(ringYear>=4) pool=['special','special','attack','control','defense','support'];
+  else if(ringYear>=3) pool=['special','attack','attack','control','defense','support'];
+  else if(ringYear>=2) pool=['attack','attack','control','defense','support'];
+  else if(ringYear>=1) pool=['attack','defense','support','control'];
+  else pool=['attack','defense','support'];
+  const type=pool[Math.floor(Math.random()*pool.length)];
+  let candidates=SKILLS_DATA[type].filter(s=>!G.usedSkillNames.includes(s.n));
+  let chosen;
+  if(candidates.length>0) chosen=candidates[Math.floor(Math.random()*candidates.length)];
+  else{
+    const allAvail=[];
+    ST.forEach(t=>{SKILLS_DATA[t].forEach(s=>{if(!G.usedSkillNames.includes(s.n))allAvail.push({...s,type:t});});});
+    chosen=allAvail.length>0?allAvail[Math.floor(Math.random()*allAvail.length)]:{n:'重复领悟·化境',e:'全属性',p:10,type:'special'};
+  }
+  G.usedSkillNames.push(chosen.n);
+  const tName={attack:'⚔ 攻击',defense:'🛡 防御',control:'🌀 控制',support:'💚 辅助',special:'💥 奥义'};
+  const basePow=ringYear*3+Math.floor(Math.random()*15);
+  const power=basePow+(chosen.p||0);
+  const effect=chosen.e;
+  const descMap={
+    '撕裂':`释放撕裂力量，造成${Math.floor(power*1.5)}-${Math.floor(power*2.8)}伤害`,'灼烧':`烈焰灼伤${Math.floor(power*1.4)}-${Math.floor(power*2.5)}`,
+    '麻痹':'雷电磁场麻痹魂兽','震伤':'震荡之力内伤削弱','流血':'锋锐持续失血','震慑':'威压降低战力','穿透':'无视护甲',
+    '冰冻':'极寒冻结行动','中毒':'剧毒持续消耗','护盾':`抵御${Math.floor(power*2)}点伤害`,'反伤':`反弹${Math.floor(power*0.8)}%伤害`,
+    '坚韧':'固化防御','束缚':'限制移动攻击','减速':'减缓速度','眩晕':'精神冲击失能','迷惑':'幻象干扰','定身':'时空之力定住',
+    '恐惧':'威压令其颤抖','回复':`恢复${power+20}气血`,'激昂':'激发全属性','加速':'提升敏捷','净化':'清除负面',
+    '吸血':'吸气血恢复自身','巨幅增强':'全属性大幅提升'
+  };
+  return{ name:chosen.n,type,tName:tName[type]||'未知',power,effect,desc:descMap[effect]||`蕴含${effect}之力`,ringYear };
+}
+
+function addLog(tag,text){const s=document.getElementById('logSection');const d=document.createElement('div');d.className='log-entry';d.innerHTML=`<span class="tag tag-${tag}">${tag}</span>${text}`;s.appendChild(d);s.scrollTop=s.scrollHeight;}
+
+function runBattle(beast){
+  const playerCP=combatPower();
+  const mutantBonus=hasTalent('mutant')?1.3:1;
+  const msEffBonus=1+(G._msEff||0);
+  // 没魂技硬拼
+  if(G.skills.length===0){
+    const dmgPlayer=Math.floor(playerCP/5+5+Math.random()*10);
+    const dmgBeast=Math.floor(beast.power/10+Math.random()*5);
+    const success=dmgPlayer>dmgBeast+Math.random()*20;
+    const bh=success?0:Math.max(0,beast.hp-dmgPlayer);
+    const ph=Math.max(0,G.hp-(Math.floor(beast.power/8+Math.random()*5)));
+    return {rounds:[],success,bh,ph};
+  }
+  // 选择参战魂技
+  const usedSkills=G.skills.filter(()=>Math.random()<0.85);
+  if(usedSkills.length<2&&G.skills.length>0){usedSkills.push(...G.skills.filter(()=>Math.random()<0.8));if(usedSkills.length<2)usedSkills.push(G.skills[Math.floor(Math.random()*G.skills.length)]);}
+  let beastHP=beast.hp;let playerHP=G.hp;
+  const maxRounds=15;const rounds=[];
+  for(let r=0;r<maxRounds&&beastHP>0&&playerHP>0;r++){
+    const sk=usedSkills[r%usedSkills.length];const eff=sk.effect;
+    const effBonus=(EFF_BONUS[eff]||0)*mutantBonus*msEffBonus;
+    // 玩家攻击
+    const baseDmg=Math.floor(playerCP/5+5+Math.random()*10+getEquipBonus('cp')/3);
+    const playerDmg=Math.max(1,Math.floor(baseDmg*(1+effBonus+getEquipBonus('huntB'))));
+    beastHP=Math.max(0,beastHP-playerDmg);
+    // 魂兽反击
+    let beastDmg=Math.floor(beast.power/10+Math.random()*5);
+    if(eff==='护盾')beastDmg=Math.floor(beastDmg*0.4);
+    else if(eff==='坚韧')beastDmg=Math.floor(beastDmg*0.6);
+    else if(eff==='反伤')beastDmg=Math.floor(beastDmg*0.8);
+    playerHP=Math.max(0,playerHP-beastDmg);
+    rounds.push({round:r+1,skillName:sk.name,effect:eff,effDesc:EFF_DESC[eff]||'未知',playerDmg,beastDmg,beastHp:beastHP,playerHp:playerHP});
+  }
+  const success=beastHP<=0;
+  if(!success)playerHP=Math.max(0,playerHP-30);
+  return {rounds,success,bh:beastHP,ph:playerHP};
+}
+
+function spendTime(mons,desc){G.ageMonths+=mons;G.elapsedMonths+=mons;addLog('time',`⏳ ${desc}，消耗${mons}个月`);}
+
+// ====== 核心动作 ======
+function actCultivate(){
+  const mons=randMonth(3,6);spendTime(mons,'闭关修炼');G.cC++;
+  const gain=Math.floor((Math.random()*6+4+G.soulPower*0.5)*cultivationMultiplier());
+  G.spPool+=gain;addLog('cultivate',`🧘 潜心修炼，魂力积攒 +${gain}（${G.spPool}/${spTh()}）`);
+  if(G.spPool>=spTh()){if(G.level===0||G.soulRings.length>G.level)doBreakthrough();else addLog('system',`⚡ 还需${G.level+1-G.soulRings.length}个魂环才能突破。`);}
+  if(Math.random()<0.06){G.hp=Math.max(0,G.hp-Math.floor(Math.random()*12+5));addLog('cultivate','⚠ 修炼过急，气血微损');}
+  chkDeath();if(!G.alive)showEnd();else updateAll();
+}
+function actHunt(){
+  const mons=randMonth(6,12);spendTime(mons,'深入猎场');G.hC++;
+  if(G.soulRings.length>=getRingLimit()){addLog('system','❌ 魂环已满。');updateAll();return;}
+  let beast=pickBeast();
+  // 双生武魂副武魂模式：强制年限>=主武魂最后一环
+  if(hasTalent('twin')&&G._msMode==='secondary'&&G._primaryMaxYear>0){
+    let tries=0;
+    while(beast.year<G._primaryMaxYear&&tries<20){beast=pickBeast();tries++;}
+  }
+  
+  // 遭遇阶段：显示魂兽信息 + 战斗/逃跑选择
+  document.getElementById('btTitle').textContent='遭遇魂兽';
+  document.getElementById('btSub').textContent=curReg().name+' · 搜索'+mons+'个月';
+  document.getElementById('bbName').textContent=beast.name;
+  document.getElementById('bbYear').textContent=`${beast.yearLabel}魂兽 · ${beast.year}年 · HP ${beast.hp} · 战力${beast.power}`;
+  document.getElementById('biPlayerCP').textContent=combatPower();
+  document.getElementById('biBeastCP').textContent=beast.power;
+  document.getElementById('bbBar').style.background='var(--red)';document.getElementById('bbBar').style.width='100%';
+  document.getElementById('bbStat').textContent='🩸 '+beast.hp;
+  document.getElementById('battleLog').innerHTML='<div style="text-align:center;color:var(--text2);padding:12px;font-size:13px">⚔ 是战是逃？</div>';
+  document.getElementById('battleResultBox').style.display='none';
+  document.getElementById('battleReplace').style.display='none';
+  document.getElementById('battleFooter').innerHTML=`
+    <button class="bf-btn primary" id="btFight">⚔ 战斗</button>
+    <button class="bf-btn secondary" id="btFlee">🏃 逃跑</button>`;
+  
+  G._huntBeast=beast;
+  document.getElementById('huntOverlay').classList.add('show');
+}
+function actAbsorb(){
+  if(!G.huntedRing){addLog('system','❌ 没有魂环可吸收。');updateAll();return;}
+  const tier=G.huntedRing;const year=G.huntedYear;
+  const {rate,level}=absorbSuccessRate(year);
+  const lvE={'安全':'🟢','稳定':'🔵','挑战':'🟡','危险':'🟠','高危':'🔴','致命':'💀'};
+  
+  // 弹窗确认
+  document.getElementById('abConfirmTitle').textContent=year+'年 '+RN[tier]+'魂环';
+  document.getElementById('abConfirmInfo').innerHTML=
+    '来源: '+G.huntedBeast+'<br>年限: '+year+'年<br>难度: '+lvE[level]+' '+level+' | 成功率: '+Math.floor(rate*100)+'%<br><span style="color:var(--red);font-size:11px">失败则魂环破碎，气血反噬</span>';
+  document.getElementById('abConfirmOverlay').classList.add('show');
+}
+function actAdventure(){
+  const mons=randMonth(3,8);spendTime(mons,'在外历练');G.aC++;
+  const reg=curReg();const r=Math.random();const oceanM=hasTalent('ocean')?1.3:1;
+  if(r<0.18){const g=Math.floor((Math.random()*25+15+G.region*3)*oceanM);G.spPool+=g;addLog('adventure',`✨ 在${reg.name}偶遇仙草！魂力+${g}`);}
+  else if(r<0.32){const h=Math.floor(Math.random()*25+15*oceanM);G.hp=Math.min(G.maxHp,G.hp+h);addLog('adventure',`🌿 发现药草，气血+${h}`);}
+  else if(r<0.48){const b=pickBeast();const cp=combatPower();if(cp>b.power*0.8){const g=Math.floor((b.year/80+5)*oceanM);G.spPool+=g;addLog('adventure',`🐾 击退${b.name}！魂力+${g}`);}else{const d=Math.floor(Math.random()*18+8+G.region*2);G.hp=Math.max(0,G.hp-d);addLog('adventure',`🐉 遭遇${b.name}，不敌！`);}}
+  else if(r<0.62){const g=Math.floor((Math.random()*12+5+G.region*2)*oceanM);G.spPool+=g;G.hp=Math.min(G.maxHp,G.hp+10);addLog('adventure',`🤝 前辈指点，魂力+${g}`);}
+  else if(r<0.73){const g=Math.floor((Math.random()*20+10+G.region*3)*oceanM);G.spPool+=g;addLog('adventure',`🦴 发现魂骨残片！魂力+${g}`);}
+  else if(r<0.82){const d=Math.floor(G.maxHp*0.2)+15;G.hp=Math.max(0,G.hp-d);addLog('adventure',`⚠ 误入险地！气血-${d}`);}
+  else addLog('adventure',`🌄 在${reg.name}游历一番。`);
+  chkDeath();if(!G.alive)showEnd();else updateAll();
+}
+function actRest(){
+  const mons=randMonth(2,4);spendTime(mons,'静心休养');G.rC++;
+  let h=Math.floor((Math.random()*18+12+G.level*2)*(1+(G._msHeal||0)));
+  if(G.soulBones.some(sb=>sb.key==='boneTorso')) h=Math.floor(h*1.3);
+  if(hasTalent('jade')) h=Math.floor(h*2);
+  G.hp=Math.min(G.maxHp+getEquipBonus('hp'),G.hp+h);
+  addLog('rest',`💤 休养完毕，气血+${h}`);updateAll();
+}
+function actPill(){
+  if(!G||!G.alive)return;
+  const pills=[
+    {id:'qi',name:'聚气散',icon:'💊',desc:'获得少量魂力',sp:3+Math.floor(G.level*2),hp:0,baseRate:0.70,time:[2,4],risk:'低'},
+    {id:'blood',name:'凝血丹',icon:'❤️',desc:'恢复气血',sp:0,hp:20+Math.floor(G.level*3),baseRate:0.70,time:[2,4],risk:'低'},
+    {id:'spirit',name:'蕴神丹',icon:'✨',desc:'魂力气血双恢复',sp:2+Math.floor(G.level*1.5),hp:10+Math.floor(G.level*2),baseRate:0.50,time:[3,5],risk:'中'},
+    {id:'foundation',name:'培元丹',icon:'🔥',desc:'获得大量魂力',sp:10+Math.floor(G.level*5),hp:0,baseRate:0.35,time:[3,6],risk:'高'},
+    {id:'fortune',name:'造化丹',icon:'👑',desc:'巨额魂力+延长寿命·50%提升15点气血上限',sp:20+Math.floor(G.level*8),hp:50+Math.floor(G.level*5),maxHp:15,baseRate:0.18,time:[4,7],risk:'极高'}
+  ];
+  const lvE={'低':'🟢','中':'🟡','高':'🟠','极高':'🔴'};
+  document.getElementById('pillList').innerHTML=pills.map((p,i)=>{
+    const rate=p.baseRate+(hasTalent('mystic')?0.2:0)+(G._msPill||0)+(hasTalent('food')?0.1:0);
+    return '<div class="pill-card" data-idx="'+i+'" style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px;cursor:pointer" onclick="selectPill('+i+')">'+
+      '<div style="display:flex;justify-content:space-between;align-items:center">'+
+      '<span style="font-size:14px;font-weight:600">'+p.icon+' '+p.name+'</span>'+
+      '<span style="font-size:11px;color:var(--text2)">成功率 '+Math.floor(rate*100)+'% · 风险 '+lvE[p.risk]+'</span></div>'+
+      '<div style="font-size:12px;color:var(--text2);margin-top:4px">'+p.desc+'</div>'+
+      '<div style="font-size:11px;color:var(--text2);margin-top:2px">耗时 '+p.time[0]+'-'+p.time[1]+'个月</div></div>';
+  }).join('');
+  document.getElementById('pillOverlay').classList.add('show');
+}
+function selectPill(idx){
+  const pills=[
+    {id:'qi',name:'聚气散',icon:'💊',desc:'获得少量魂力',sp:3+Math.floor(G.level*2),hp:0,baseRate:0.70,time:[2,4],risk:'低'},
+    {id:'blood',name:'凝血丹',icon:'❤️',desc:'恢复气血',sp:0,hp:20+Math.floor(G.level*3),baseRate:0.70,time:[2,4],risk:'低'},
+    {id:'spirit',name:'蕴神丹',icon:'✨',desc:'魂力气血双恢复',sp:2+Math.floor(G.level*1.5),hp:10+Math.floor(G.level*2),baseRate:0.50,time:[3,5],risk:'中'},
+    {id:'foundation',name:'培元丹',icon:'🔥',desc:'获得大量魂力',sp:10+Math.floor(G.level*5),hp:0,baseRate:0.35,time:[3,6],risk:'高'},
+    {id:'fortune',name:'造化丹',icon:'👑',desc:'巨额魂力+延长寿命·概率提升气血上限',sp:20+Math.floor(G.level*8),hp:50+Math.floor(G.level*5),maxHp:15,baseRate:0.18,time:[4,7],risk:'极高'}
+  ];
+  const p=pills[idx];if(!p)return;
+  const food=hasTalent('food');
+  const mons=randMonth(food?1:2,food?3:5);
+  const rate=p.baseRate+(hasTalent('mystic')?0.2:0)+(G._msPill||0)+(food?0.1:0);
+  G.ageMonths+=mons;G.elapsedMonths+=mons;G.pC++;
+  addLog('time','⏳ 炼制'+p.name+'，消耗'+mons+'个月');
+  if(Math.random()<rate){
+    const foodM=food?2:1;
+    const spG=Math.floor(p.sp*foodM);const hpG=Math.floor(p.hp*foodM);
+    if(spG>0){G.spPool+=spG;}
+    if(hpG>0){G.hp=Math.min(G.maxHp,G.hp+hpG);}
+    let extra='';
+    if(p.maxHp&&Math.random()<0.5){G.maxHp+=Math.floor(p.maxHp*foodM);G.hp=Math.min(G.maxHp,G.hp+Math.floor(p.maxHp*foodM));extra='，气血上限+'+Math.floor(p.maxHp*foodM);}
+    addLog('pill','💊 成功炼制'+p.name+'！魂力+'+spG+' 气血+'+hpG+extra);
+  }else{
+    addLog('pill','🔥 '+p.name+'炼制失败...材料报废');
+    if(Math.random()<0.15){const d=Math.floor(Math.random()*10+5);G.hp=Math.max(0,G.hp-d);addLog('pill','⚠ 丹炉爆裂，气血-'+d);}
+  }
+  document.getElementById('pillOverlay').classList.remove('show');
+  updateAll();
+}
+function actForge(){
+  const cap=G.level*40;
+  if(G._forgeHP>=cap){addLog('system','❌ 当前等级锻体已达上限。');updateAll();return;}
+  const mons=randMonth(3,6);
+  G.ageMonths+=mons;G.elapsedMonths+=mons;
+  const gain=Math.min(Math.floor(Math.random()*6+3),cap-G._forgeHP);
+  G._forgeHP+=gain;G.maxHp+=gain;G.hp=Math.min(G.maxHp,G.hp+gain);
+  addLog('forge','💪 锻体修行！气血上限+'+gain+'（'+G._forgeHP+'/'+cap+'）');
+  chkDeath();if(!G.alive)showEnd();else updateAll();
+}
+function doBreakthrough(){
+  G.level++;G.spPool=Math.max(0,G.spPool-spTh());
+  G.maxHp=Math.max(G.maxHp,100+G.level*G.level*50+G.level*50);G.hp=Math.min(G.maxHp,Math.max(G.hp+50,G.hp));
+  addLog('break',`🏆 突破！${LN[G.level]}！寿命延至${maxLifeYears()}岁`);
+  REGIONS.forEach(r=>{if(r.minLv<=G.level&&!G.unlockedRegions.includes(r.id))G.unlockedRegions.push(r.id);});
+  document.getElementById('breakTitle').textContent=`突破！${LN[G.level]}`;
+  document.getElementById('breakSub').textContent=`寿命增至${maxLifeYears()}岁·解锁新区域`;
+  document.getElementById('breakOverlay').classList.add('show');updateAll();
+}
+function travelTo(rid){
+  if(!G.unlockedRegions.includes(rid)||rid===G.region)return;
+  const mons=Math.abs(G.region-rid)*2+randMonth(1,4);
+  spendTime(mons,'长途跋涉');G.region=rid;
+  if(hasTalent('ocean')){const h=Math.floor(Math.random()*20+10);G.hp=Math.min(G.maxHp,G.hp+h);addLog('travel','🌊 海神眷顾，途中恢复气血 +'+h);}
+  addLog('travel',`🚶 抵达${REGIONS[rid].name}`);updateAll();
+}
+function chkDeath(){if(G.ageMonths/12>=maxLifeYears()||G.hp<=0)G.alive=false;}
+
+// ====== UI ======
+function updateAll(){
+  if(hasTalent('twin')&&G._secondaryMs){
+    const sec=G._secondaryMs;
+    document.getElementById('gMs').textContent=G.ms.icon+' '+G.ms.n+(G._msMode==='secondary'?' 主':'')+' | '+sec.icon+' '+sec.n+(G._msMode==='primary'?' 副':'')+(G._msMode==='secondary'?' [副]':'');
+  }else{
+    document.getElementById('gMs').textContent=G.ms.icon+' '+G.ms.n+' · '+G.ms.cat;
+  }
+  document.getElementById('gName').textContent=G.name;
+  document.getElementById('gAge').textContent=`年龄: ${ageStr(G.ageMonths)}`;
+  document.getElementById('gYear').textContent=`第 ${yearStr(G.elapsedMonths)} · ${curReg().name}`;
+  // 天赋标签
+  if(G.talents.length>0)document.getElementById('talentsBar').innerHTML=G.talents.map(t=>`<span class="talent-tag">${t.icon} ${t.name}</span>`).join('');
+  else document.getElementById('talentsBar').innerHTML='';
+  // 修为
+  document.getElementById('gLevel').textContent=LN[G.level]||'未知';
+  const sm=spTh();const spP=Math.min(100,(G.spPool/sm)*100);
+  document.getElementById('spBar').style.width=spP+'%';
+  document.getElementById('gSP').textContent=G.spPool;document.getElementById('gSPMax').textContent=sm;
+  // 寿命
+  const ml=maxLifeYears();const lifePct=Math.min(100,((ml*12-G.ageMonths)/(ml*12))*100);
+  document.getElementById('lifeBar').style.width=Math.max(0,lifePct)+'%';
+  document.getElementById('gLife').textContent=ml+'岁';document.getElementById('gLifeSub').textContent=`已过${ageStr(G.ageMonths)}`;
+  // 气血
+  const hP=G.maxHp>0?(G.hp/(G.maxHp+getEquipBonus('hp')))*100:0;
+  document.getElementById('hpBar').style.width=Math.max(0,hP)+'%';
+  document.getElementById('gHP').textContent=Math.floor(G.hp)+'/'+(G.maxHp+getEquipBonus('hp'));
+  let st='良好';if(G.hp/(G.maxHp+getEquipBonus('hp'))<.2)st='濒危';else if(G.hp/(G.maxHp+getEquipBonus('hp'))<.4)st='重伤';else if(G.hp/(G.maxHp+getEquipBonus('hp'))<.6)st='受伤';
+  document.getElementById('gHPSub').textContent='状态:'+st;
+  document.getElementById('gCombat').textContent=combatPower();
+  document.getElementById('gRingCount').textContent=G.soulRings.length;
+  document.getElementById('gSkillCount').textContent=G.skills.length;
+  // 魂骨
+  document.getElementById('gBoneHint').textContent=G.soulBones.length+'块';
+  const bl=document.getElementById('boneList');
+  if(G.soulBones.length===0) bl.innerHTML='<div style="color:var(--text2);font-size:12px;text-align:center;padding:6px 0">尚未获得魂骨</div>';
+  else bl.innerHTML=G.soulBones.map(sb=>{const isExt=sb.type==='外附魂骨';return`<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px">
+    <span>${sb.icon}</span>
+    <span style="flex:1;color:${isExt?'#FF5252':'var(--text)'};font-weight:${isExt?700:500}">${sb.name}</span>
+    <span style="color:var(--text2);font-size:10px">${sb.year}年</span>
+  </div>`;}).join('');
+  // 魂环
+  document.getElementById('ringCap').textContent=getRingLimit()>=99?'∞':getRingLimit();
+  const rr=document.getElementById('ringsRow');rr.innerHTML='';
+  const rl=getRingLimit();
+  for(let i=0;i<Math.min(rl,20);i++){const d=document.createElement('div');d.className='ring-dot ring-clickable';if(i<G.soulRings.length){const r=G.soulRings[i];const t=r.tier;d.classList.add(RC[t]||'ring-white');d.textContent=RL[t]||'○';d.dataset.rid=i;}else{d.classList.add('ring-empty');d.textContent='○';}rr.appendChild(d);}
+  const full=G.soulRings.length>=rl;
+  document.getElementById('gHuntHint').textContent=full?'已满':`可吸收${Math.min(G.level,9)-G.soulRings.length}个`;
+  // 魂技
+  const sl=document.getElementById('skillsList');
+  if(G.skills.length===0)sl.innerHTML='<div class="skills-empty">尚未拥有任何魂技<br>吸收魂环后自动领悟</div>';
+  else sl.innerHTML=G.skills.map(s=>{const tc=s.ringYear<=1?'ring-white':(s.ringYear<=2?'ring-yellow':(s.ringYear<=3?'ring-purple':(s.ringYear<=4?'ring-black':'ring-red')));return`<div class="skill-card"><div class="s-header"><span class="s-name" style="color:var(--gold)">${s.name}</span><span class="s-ring ${tc}">${RN[s.ringYear]||'百年'}</span></div><div class="s-type">${s.tName}·威力${s.power}</div><div class="s-desc">${s.desc}</div><div class="s-effect">✨${s.effect}—${EFF_DESC[s.effect]||''}</div></div>`;}).join('');
+  // 装备
+  renderEquip();
+  drawMap();
+  const reg=curReg();
+  document.getElementById('riName').textContent=reg.icon+' '+reg.name;
+  document.getElementById('riDesc').textContent=reg.desc;
+  document.getElementById('riLevel').textContent=LN[Math.min(reg.minLv,LN.length-1)]+'以上';
+  document.getElementById('riBeast').textContent=fy(reg.beastMin)+'-'+fy(reg.beastMax);
+  document.getElementById('travelBtn').textContent='📍 当前所在';document.getElementById('travelBtn').disabled=true;
+  document.querySelector('[data-act="absorb"]').disabled=!G.huntedRing;
+  document.querySelector('[data-act="hunt"]').disabled=G.soulRings.length>=getRingLimit();
+  document.querySelector('[data-act="rest"]').disabled=G.hp>=G.maxHp+getEquipBonus('hp');
+  document.querySelector('[data-act="forge"]').disabled=G._forgeHP>=G.level*40;
+  document.querySelectorAll('.action-btn').forEach(b=>{if(b.dataset.act!=='absorb'&&b.dataset.act!=='hunt'&&b.dataset.act!=='rest'&&b.dataset.act!=='forge')b.disabled=!G.alive;});
+  if(G.ageMonths/12>=ml||G.hp<=0){G.alive=false;showEnd();}
+}
+// 装备渲染
+function renderEquip(){
+  document.getElementById('backpackCount').textContent=G.backpack.length;
+  // 已装备
+  const slotsHtml=EQ_SLOTS.map(s=>{
+    const eq=G.equipment[s.key];
+    if(eq){
+      const rc=EQ_RCOLOR[eq.rarity]||'#888';
+      return '<div class="eq-slot" data-slot="'+s.key+'" style="border-color:'+rc+'40" onclick="unequipItem(\''+s.key+'\')"><div class="eq-icon">'+s.icon+'</div><div class="eq-name" style="color:'+rc+'">'+eq.name+'</div><div class="eq-stats">'+(eq.cp?'战力+'+eq.cp:'')+(eq.hp?' HP+'+eq.hp:'')+'</div></div>';
+    }
+    return '<div class="eq-slot" onclick="showBackpackForSlot(\''+s.key+'\')"><div class="eq-icon">'+s.icon+'</div><div class="eq-empty">空</div><div class="eq-stats" style="color:var(--text2);font-size:9px">'+s.desc+'</div></div>';
+  }).join('');
+  document.getElementById('eqSlots').innerHTML='<div class="eq-slots-grid">'+slotsHtml+'</div>';
+  // 背包
+  renderBackpack();
+}
+function renderBackpack(filterSlot){
+  const items=filterSlot?G.backpack.filter(i=>i.slot===filterSlot):G.backpack;
+  const el=document.getElementById('eqBackpack');
+  if(items.length===0){el.innerHTML='<div style="text-align:center;padding:20px;color:var(--text2);font-size:13px">背包为空</div>';return;}
+  el.innerHTML=items.map((eq,i)=>{
+    const rc=EQ_RCOLOR[eq.rarity]||'#888';
+    const equipped=G.equipment[eq.slot]&&G.equipment[eq.slot].id===eq.id;
+    return '<div class="eq-item-card"><div class="eqi-icon" style="color:'+rc+'">'+EQ_SLOTS.find(s=>s.key===eq.slot).icon+'</div><div class="eqi-info"><div class="eqi-name" style="color:'+rc+'">'+eq.name+'</div><div class="eqi-sub">'+(eq.cp?'战力+'+eq.cp+' ':'')+(eq.hp?'HP+'+eq.hp+' ':'')+EQ_RARITY[eq.rarity]+' · '+(eq.year+'年')+'</div></div>'+(equipped?'<button class="eqi-btn unequip" onclick="unequipItem(\''+eq.slot+'\')">卸下</button>':'<button class="eqi-btn equip" onclick="equipItem('+i+')">装备</button>')+'</div>';
+  }).join('');
+}
+// 装备/卸下
+function equipItem(idx){
+  const eq=G.backpack[idx];if(!eq)return;
+  if(G.equipment[eq.slot])G.backpack.push(G.equipment[eq.slot]);
+  G.equipment[eq.slot]=eq;
+  G.backpack.splice(idx,1);
+  renderEquip();updateAll();
+}
+function unequipItem(slot){
+  if(!G.equipment[slot])return;
+  G.backpack.push(G.equipment[slot]);
+  G.equipment[slot]=null;
+  renderEquip();updateAll();
+}
+function showBackpackForSlot(slot){
+  renderBackpack(slot);
+}
+function fy(y){return y>=10000?(y/10000)+'万':y+'年';}
+function drawMap(){
+  const c=document.getElementById('mapContainer');const w=c.offsetWidth||396;const h=c.offsetHeight||515;
+  document.getElementById('mapBg').innerHTML=REGIONS.map(r=>{const x=r.x/100*w;const y=r.y/100*h;const unlocked=G.unlockedRegions.includes(r.id);const cur=r.id===G.region;return`<div class="region-marker${cur?' current':''}${!unlocked?' locked':''}" style="left:${x}px;top:${y}px" data-rid="${r.id}"><span class="r-icon">${r.icon}</span><span class="r-name">${r.name}</span></div>`;}).join('');
+  document.querySelectorAll('.region-marker').forEach(el=>{el.addEventListener('click',function(){const rid=parseInt(this.dataset.rid);if(G.unlockedRegions.includes(rid))selectRegion(rid);});});
+}
+function selectRegion(rid){
+  const r=REGIONS[rid];
+  document.getElementById('riName').textContent=r.icon+' '+r.name;
+  document.getElementById('riDesc').textContent=r.desc;
+  document.getElementById('riLevel').textContent=LN[Math.min(r.minLv,LN.length-1)]+'以上';
+  document.getElementById('riBeast').textContent=fy(r.beastMin)+'-'+fy(r.beastMax);
+  if(rid===G.region){document.getElementById('travelBtn').textContent='📍当前所在';document.getElementById('travelBtn').disabled=true;}
+  else{document.getElementById('travelBtn').textContent='🚶前往'+r.name;document.getElementById('travelBtn').disabled=false;document.getElementById('travelBtn').onclick=function(){travelTo(rid);};}
+}
+function showEnd(){
+  document.getElementById('gameScreen').style.display='none';document.getElementById('endScreen').style.display='block';
+  const lv=LN[G.level]||'未知';const ad=Math.floor(G.ageMonths/12);
+  let ic,tt,ss;
+  if(G.hp<=0){ic='💀';tt='战死陨落';ss='你的魂师之路在战斗中戛然而止。';}else{ic='🕊';tt='寿终正寝';ss=`你在${ad}岁时走完了魂师之路。`;}
+  if(G.level>=9){ic='👑';tt='封号斗罗！';ss=`以${ad}岁成就封号斗罗，名震大陆！`;}
+  document.getElementById('endIcon').textContent=ic;document.getElementById('endTitle').textContent=tt;document.getElementById('endSub').textContent=ss;
+  const y=Math.floor(G.elapsedMonths/12);const mo=G.elapsedMonths%12;
+  document.getElementById('endStatsBox').innerHTML=
+    `    <div class="row"><span class="label">魂师之名</span><span class="value">${G.name}</span></div>
+    <div class="row"><span class="label">武魂</span><span class="value">${G.ms.icon} ${G.ms.n}（${G.ms.cat}）</span></div>
+    <div class="row"><span class="label">最终修为</span><span class="value">${lv}</span></div>
+    <div class="row"><span class="label">享年</span><span class="value">${ageStr(G.ageMonths)}</span></div>
+    <div class="row"><span class="label">先天魂力</span><span class="value">${G.innateSP}级</span></div>
+    <div class="row"><span class="label">天赋</span><span class="value">${G.talents.length>0?G.talents.map(t=>t.name).join('、'):'无'}</span></div>
+    <div class="row"><span class="label">魂环</span><span class="value">${G.soulRings.length}个${hasTalent('twin')&&G._secondaryRings>0?'（副'+G._secondaryRings+'环）':''}</span></div>
+    <div class="row"><span class="label">魂技</span><span class="value">${G.skills.length}个</span></div>
+    <div class="row"><span class="label">魂骨</span><span class="value">${G.soulBones.length}块</span></div>
+    <div class="row"><span class="label">修炼纪元</span><span class="value">${y}年${mo>0?mo+'个月':''}</span></div>
+    <div class="row"><span class="label">最远抵达</span><span class="value">${REGIONS[G.region].name}</span></div>`;
+}
+
+document.addEventListener('DOMContentLoaded',function(){
+  // 觉醒
+  document.getElementById('awakenBtn').addEventListener('click',function(){
+    const name=document.getElementById('nameInput').value.trim()||'无名魂师';
+    const innate=rollInnateSoulPower();
+    const roll=rollTalents();
+    const talents=roll.talents;
+    const ms=roll.ms;
+    
+    document.getElementById('awakenName').textContent='—— '+name+' ——';
+    document.getElementById('awakenSpNum').textContent=innate+'级';
+    document.getElementById('startScreen').style.display='none';
+    
+    // 魂力稀有度
+    const rarityEl=document.getElementById('awakenSpRarity');
+    if(innate>=10){rarityEl.textContent='★ 传奇 ★';rarityEl.className='sp-rarity rarity-legendary';}
+    else if(innate>=8){rarityEl.textContent='★★ 稀有 ★★';rarityEl.className='sp-rarity rarity-rare';}
+    else if(innate>=5){rarityEl.textContent='★ 不凡 ★';rarityEl.className='sp-rarity rarity-uncommon';}
+    else{rarityEl.textContent='普通';rarityEl.className='sp-rarity rarity-common';}
+    
+    // 武魂显示
+    document.getElementById('awakenMsIcon').textContent=ms.icon;
+    document.getElementById('awakenMsName').textContent=ms.n;
+    document.getElementById('awakenMsType').textContent=ms.cat;
+    document.getElementById('awakenMsEffect').textContent='✨ '+ms.eff;
+    document.getElementById('awakenMsBox').querySelector('.ms-tag')&&document.getElementById('awakenMsBox').querySelector('.ms-tag').remove();
+    const tag=document.createElement('span');tag.className='ms-tag '+ms.cls;tag.textContent=ms.cat;
+    document.getElementById('awakenMsBox').appendChild(tag);
+    
+    // 天赋
+    const tEl=document.getElementById('awakenTalents');
+    if(talents.length>0){
+      tEl.innerHTML=talents.map(t=>`<div class="talent-card"><div class="t-icon">${t.icon}</div><div class="t-info"><div class="t-name">${t.name}</div><div class="t-desc">${t.desc}</div><div class="t-rate">出现概率: ${(t.rate*100).toFixed(1)}%</div></div></div>`).join('');
+    }else{
+      tEl.innerHTML='<div class="awaken-none">没有觉醒特殊天赋<br>平凡的起点，不代表平凡的终点</div>';
+    }
+    
+    document.getElementById('awakenOverlay').classList.add('show');
+    
+    // 存储数据供开始使用
+    document.getElementById('awakenStart').onclick=function(){
+      document.getElementById('awakenOverlay').classList.remove('show');
+      initGame(name, innate, roll);
+      document.getElementById('gameScreen').style.display='block';
+      
+      let talentDesc = G.talents.length>0?'天赋: '+G.talents.map(t=>t.name).join('、'):'无特殊天赋';
+      addLog('system',`✨ ${G.name} 武魂觉醒！先天魂力${G.innateSP}级，${talentDesc}`);
+      addLog('system',`⚔ 武魂：${G.ms.icon} ${G.ms.n}（${G.ms.cat}）— ${G.ms.eff}`);
+      if(hasTalent('twin')) addLog('system','⚔⚔ 双生武魂！主武魂九环后切换副武魂·副武魂年限≥主武魂最后一环！');
+      if(hasTalent('twin')&&G._secondaryMs) addLog('system','⚔ 副武魂: '+G._secondaryMs.icon+G._secondaryMs.n);
+      updateAll();
+    };
+  });
+  
+  // 回车触发
+  document.getElementById('nameInput').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('awakenBtn').click();});
+  
+  // Tab切换
+  document.querySelectorAll('.tab').forEach(tab=>{tab.addEventListener('click',function(){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));this.classList.add('active');document.getElementById('tab-'+this.dataset.tab).classList.add('active');if(this.dataset.tab==='map')drawMap();});});
+  
+  // 动作
+  document.querySelectorAll('.action-btn').forEach(btn=>{btn.addEventListener('click',function(){if(!G||!G.alive)return;switch(this.dataset.act){case'cultivate':actCultivate();break;case'hunt':actHunt();break;case'absorb':actAbsorb();break;case'adventure':actAdventure();break;case'rest':actRest();break;case'forge':actForge();break;case'pill':actPill();break;}});});
+  
+  document.getElementById('breakContinue').addEventListener('click',function(){document.getElementById('breakOverlay').classList.remove('show');if(!G.alive)showEnd();else updateAll();});
+
+// 吸收魂环确认
+function doAbsorb(){
+  const tier=G.huntedRing;const year=G.huntedYear;
+  const {rate}=absorbSuccessRate(year);
+  const mons=randMonth(2,4);
+  G.ageMonths+=mons;G.elapsedMonths+=mons;
+  addLog('time','⏳ 吸收魂环，消耗'+mons+'个月');
+  addLog('system','⚠ '+year+'年'+RN[tier]+'魂环 — 难度'+absorbSuccessRate(year).level+'（成功率'+Math.floor(rate*100)+'%）');
+  
+  if(Math.random()<rate){
+    let newSK=[];
+    const s=generateSkill(tier);newSK.push(s);G.skills.push(s);
+    G.soulRings.push({tier, year, beast:G.huntedBeast||'未知', skills:newSK});
+    const gain=Math.floor(tier*7+Math.random()*15);G.spPool+=gain;
+    addLog('ring','💫 成功吸收'+year+'年'+RN[tier]+'魂环！魂力+'+gain);
+    newSK.forEach(s=>addLog('skill','📜 领悟「'+s.name+'」('+s.tName+') ['+s.effect+']'));
+    if(hasTalent('twin')){
+      if(G._msMode==='primary'){if(year>G._primaryMaxYear)G._primaryMaxYear=year;if(G.soulRings.length>=9){G._msMode='secondary';addLog('system','⚔⚔ 主武魂九环已满！切换至副武魂 '+G._secondaryMs.icon+G._secondaryMs.n);addLog('system','⚠ 副武魂魂环年限需 ≥ '+G._primaryMaxYear+'年');}}else G._secondaryRings++;
+    }
+    if(G.spPool>=spTh()&&(G.level===0||G.soulRings.length>G.level))doBreakthrough();
+  }else{
+    const dmg=Math.floor(year/50)+20;G.hp=Math.max(0,G.hp-dmg);
+    addLog('ring','💥 '+year+'年魂环吸收失败！气血-'+dmg);
+    if(Math.random()<0.2)addLog('ring','⚠ 魂环破碎消散...');
+  }
+  G.huntedRing=null;G.huntedBeast='';G.huntedYear=0;
+  document.getElementById('abConfirmOverlay').classList.remove('show');
+  chkDeath();if(!G.alive)showEnd();else updateAll();
+}
+
+document.getElementById('abDoBtn').addEventListener('click',doAbsorb);
+document.getElementById('abDropBtn').addEventListener('click',function(){
+  addLog('system','🗑 放弃吸收 '+G.huntedYear+'年魂环');
+  G.huntedRing=null;G.huntedBeast='';G.huntedYear=0;
+  document.getElementById('abConfirmOverlay').classList.remove('show');
+  updateAll();
+});
+  // 魂环点击详情
+  document.addEventListener('click',function(e){
+    if(e.target.classList.contains('ring-clickable')&&e.target.dataset.rid!==undefined){
+      const idx=parseInt(e.target.dataset.rid);
+      if(!G||!G.soulRings[idx])return;
+      const r=G.soulRings[idx];
+      const tc=RC[r.tier]||'ring-white';
+      const yl=RN[r.tier]||'未知';
+      document.getElementById('rdTitle').innerHTML='<span class="ring-dot '+tc+'" style="display:inline-flex;width:36px;height:36px;font-size:13px">'+RL[r.tier]+'</span> '+(r.year||'?'+'年')+yl+'魂环';
+      document.getElementById('rdContent').innerHTML=
+        '<div class="rd-row"><span class="rd-l">来源魂兽</span><span class="rd-v">'+r.beast+'</span></div>'+
+        '<div class="rd-row"><span class="rd-l">年限</span><span class="rd-v">'+(r.year||'?')+'年</span></div>'+
+        '<div class="rd-row"><span class="rd-l">魂环序号</span><span class="rd-v">第'+(idx+1)+'环</span></div>'+
+        '<div style="margin-top:10px;font-size:12px;color:var(--text2);margin-bottom:6px">领悟魂技</div>'+
+        (r.skills&&r.skills.length>0?r.skills.map(s=>'<div class="rd-skill"><div class="rs-name">'+s.name+'</div><div class="rs-type">'+s.tName+' · 威力'+s.power+'</div><div class="rs-effect">✨ '+s.effect+' — '+(EFF_DESC[s.effect]||'')+'</div></div>').join(''):'<div style="font-size:12px;color:var(--text2)">无</div>');
+      document.getElementById('ringDetailOverlay').classList.add('show');
+    }
+  });
+  document.getElementById('rdClose').addEventListener('click',function(){document.getElementById('ringDetailOverlay').classList.remove('show');});
+  document.getElementById('pillClose').addEventListener('click',function(){document.getElementById('pillOverlay').classList.remove('show');});
+  document.getElementById('eqBackpackToggle').addEventListener('click',function(){renderBackpack();});
+  document.getElementById('huntOverlay').addEventListener('click',function(e){
+    // 逃跑
+    if(e.target.id==='btFlee'){
+      const beast=G._huntBeast;G._huntBeast=null;
+      const fm=randMonth(1,3);
+      G.ageMonths+=fm;G.elapsedMonths+=fm;
+      addLog('hunt','🏃 从'+beast.name+'面前逃脱，消耗'+fm+'个月');
+      document.getElementById('huntOverlay').classList.remove('show');
+      if(!G.alive)showEnd();else updateAll();return;
+    }
+    // 战斗
+    if(e.target.id==='btFight'){
+      const beast=G._huntBeast;G._huntBeast=null;
+      if(!beast)return;
+      const battle=runBattle(beast);
+      document.getElementById('btTitle').textContent='⚔ 激战';
+      document.getElementById('battleResultBox').style.display='';
+      const bLog=document.getElementById('battleLog');
+      if(battle.rounds.length>0){
+        bLog.innerHTML=battle.rounds.map(r=>'<div class="bl-round"><div class="bl-rh">第'+r.round+'回合</div><div class="bl-action">⚔ 施放「'+r.skillName+'」<span style="color:var(--red);margin-left:6px">-'+r.playerDmg+'</span></div><div class="bl-effect">✨ '+r.effect+' — '+r.effDesc+'</div><div class="bl-dmg" style="font-size:11px;color:var(--green)">🛡 魂兽反击 -'+r.beastDmg+' | HP '+r.playerHp+'/'+r.beastHp+'</div></div>').join('');
+        addLog('battle','⚔ '+beast.name+'战报 ('+(battle.success?'胜':'负')+'):');
+        battle.rounds.forEach(r=>addLog('battle','  R'+r.round+' '+r.skillName+' 伤'+r.playerDmg+' 受'+r.beastDmg));
+      }else{
+        bLog.innerHTML='<div class="bl-round"><div class="bl-rh">⚔ 正面硬拼</div><div class="bl-action">🗡 一击决胜负'+(battle.success?'':'，不敌')+'</div></div>';
+        addLog('battle','⚔ 与'+beast.name+'硬拼'+(battle.success?' 胜':' 败'));
+      }
+      // 应用战斗结果到玩家气血
+      if(battle.ph!==undefined)G.hp=Math.max(0,battle.ph);
+      let showReplace=false;const rb=document.getElementById('battleResultBox');
+      document.getElementById('battleReplace').style.display='none';
+      if(battle.success){
+        G.huntedRing=beast.tier;G.huntedBeast=beast.name;G.huntedYear=beast.year;
+        const {rate,level}=absorbSuccessRate(beast.year);
+        const lvS=level==='安全'||level==='稳定'?'🟢':(level==='挑战'?'🟡':(level==='危险'?'🟠':'🔴'));
+        rb.className='battle-result-box success';
+        document.getElementById('brIcon').textContent='🏆';document.getElementById('brText').className='br-text ok';
+        document.getElementById('brText').textContent='✓ 狩猎成功';
+        document.getElementById('brSub').innerHTML='获得 '+beast.yearLabel+'魂环 · 吸收难度 '+lvS+' '+level;
+        let extra='';
+        if(Math.random()<soulBoneDropRate(beast.year)){
+          const sb=rollSoulBone(beast.year);
+          if(sb&&G.soulBones.some(b=>b.key===sb.key)){
+            const oldSb=G.soulBones.find(b=>b.key===sb.key);G._pendingReplace={sb,oldSb};
+            const sr=Math.min(0.9,0.25+(sb.year/oldSb.year)*0.25);
+            document.getElementById('battleReplace').style.display='';
+            document.getElementById('battleReplace').innerHTML='<div style="font-size:12px;color:var(--gold);margin-bottom:4px;text-align:center">🦴 发现同部位魂骨</div><div style="font-size:13px;text-align:center;color:var(--text);margin-bottom:2px">'+sb.icon+' '+sb.name+'（'+sb.year+'年）</div><div style="font-size:11px;text-align:center;color:var(--text2);margin-bottom:6px">当前: '+oldSb.icon+' '+oldSb.name+'（'+oldSb.year+'年）· 替换成功率 '+Math.floor(sr*100)+'%</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><button class="bf-btn danger" id="btReplace">⚔ 冒险替换</button><button class="bf-btn secondary" id="btKeep">✗ 保留旧骨</button></div>';
+            showReplace=true;
+          }else if(sb){G.soulBones.push(sb);
+            var isExt2=sb.type==='外附魂骨';
+            extra+='<div style="margin-top:6px;padding:6px;background:'+(isExt2?'rgba(255,82,82,.1)':'rgba(232,194,104,.08)')+';border-radius:6px;font-size:12px">'+(isExt2?'🔥':'🦴')+' 获得 '+sb.icon+' '+sb.name+'('+sb.year+'年)</div>';
+            addLog('hunt','🦴 掉落魂骨！获得['+sb.name+']('+sb.year+'年)');}
+        }
+        document.getElementById('brSub').innerHTML+=extra;
+        // 魂导器掉落
+        if(beast.year>=100&&Math.random()<0.08+beast.tier*0.02){
+          const eq=genEquipment(beast.year);
+          G.backpack.push(eq);
+          extra+='<div style="margin-top:4px;padding:4px;background:rgba(91,163,230,.08);border-radius:6px;font-size:12px">📦 掉落 '+eq.name+'（'+EQ_RARITY[eq.rarity]+'）</div>';
+          addLog('hunt','📦 获得魂导器「'+eq.name+'」('+EQ_RARITY[eq.rarity]+')');
+        }
+        document.getElementById('brSub').innerHTML+=extra;
+        if(hasTalent('shura')){const sg=Math.floor(beast.year/100)+5;G.spPool+=sg;}
+        addLog('hunt','🎯 在'+curReg().name+'猎杀'+beast.name+'（'+beast.year+'年）成功！');
+      }else{
+        G.fH++;const dmg=Math.floor(Math.random()*25+10+beast.tier*4);G.hp=Math.max(0,G.hp-dmg);
+        rb.className='battle-result-box fail';document.getElementById('brIcon').textContent='💀';
+        document.getElementById('brText').className='br-text no';document.getElementById('brText').textContent='✗ 狩猎失败';
+        document.getElementById('brSub').textContent='被'+beast.name+'所伤，气血 -'+dmg;
+        addLog('hunt','💥 狩猎'+beast.name+'（'+beast.year+'年）失败！');
+      }
+      document.getElementById('battleFooter').innerHTML=showReplace?'':'<button class="bf-btn primary" id="btFinish">继续修炼</button>';
+      chkDeath();if(!G.alive){document.getElementById('huntOverlay').classList.remove('show');showEnd();}else updateAll();return;
+    }
+    if(e.target.id==='btFinish'){
+      document.getElementById('huntOverlay').classList.remove('show');
+      if(!G.alive)showEnd();else updateAll();
+    }
+    if(e.target.id==='btReplace'){
+      if(!G._pendingReplace)return;
+      const {sb,oldSb}=G._pendingReplace;
+      const sr=Math.min(0.9,0.25+(sb.year/oldSb.year)*0.25);
+      if(Math.random()<sr){
+        G.soulBones=G.soulBones.filter(b=>b.key!==sb.key);
+        G.soulBones.push(sb);
+        addLog('hunt',`✅ 魂骨替换成功！${oldSb.name} → ${sb.name}`);
+        document.getElementById('brSub').innerHTML+=`<div style="margin-top:4px;color:var(--green);font-size:12px">✅ ${sb.icon} ${sb.name} 替换成功！</div>`;
+      }else{
+        G.soulBones=G.soulBones.filter(b=>b.key!==sb.key);
+        const dmg=Math.floor((sb.year+oldSb.year)/80)+30;
+        G.hp=Math.max(0,G.hp-dmg);
+        addLog('hunt',`💥 魂骨替换失败！两块破碎，气血-${dmg}`);
+        document.getElementById('brSub').innerHTML+=`<div style="margin-top:4px;color:var(--red);font-size:12px">💥 替换失败！两块魂骨破碎</div>`;
+      }
+      G._pendingReplace=null;
+      document.getElementById('battleReplace').style.display='none';
+      document.getElementById('battleFooter').innerHTML=`<button class="bf-btn primary" id="btFinish">继续修炼</button>`;
+      chkDeath();if(!G.alive)showEnd();else updateAll();
+    }
+    if(e.target.id==='btKeep'){
+      G._pendingReplace=null;
+      document.getElementById('battleReplace').style.display='none';
+      document.getElementById('battleFooter').innerHTML=`<button class="bf-btn primary" id="btFinish">继续修炼</button>`;
+      updateAll();
+    }
+  });
+  document.getElementById('restartBtn').addEventListener('click',function(){document.getElementById('endScreen').style.display='none';document.getElementById('startScreen').style.display='block';G=null;});
+  document.getElementById('randomRestartBtn').addEventListener('click',function(){
+    G=null;
+    const names=['唐三','小舞','戴沐白','朱竹清','奥斯卡','马红俊','宁荣荣','玉小刚','柳二龙','唐昊','比比东','千仞雪','胡列娜','焱','邪月'];
+    const rName=names[Math.floor(Math.random()*names.length)];
+    document.getElementById('nameInput').value=rName;
+    document.getElementById('startScreen').style.display='none';
+    document.getElementById('endScreen').style.display='none';
+    const innate=rollInnateSoulPower();
+    const roll=rollTalents();
+    const talents=roll.talents;const ms=roll.ms;
+    document.getElementById('awakenName').textContent='—— '+rName+' ——';
+    document.getElementById('awakenSpNum').textContent=innate+'级';
+    const re=document.getElementById('awakenSpRarity');
+    if(innate>=10){re.textContent='★ 传奇 ★';re.className='sp-rarity rarity-legendary';}
+    else if(innate>=8){re.textContent='★★ 稀有 ★★';re.className='sp-rarity rarity-rare';}
+    else if(innate>=5){re.textContent='★ 不凡 ★';re.className='sp-rarity rarity-uncommon';}
+    else{re.textContent='普通';re.className='sp-rarity rarity-common';}
+    document.getElementById('awakenMsIcon').textContent=ms.icon;
+    document.getElementById('awakenMsName').textContent=ms.n;
+    document.getElementById('awakenMsType').textContent=ms.cat;
+    document.getElementById('awakenMsEffect').textContent='✨ '+ms.eff;
+    const tag=document.createElement('span');tag.className='ms-tag '+ms.cls;tag.textContent=ms.cat;
+    document.getElementById('awakenMsBox').appendChild(tag);
+    const tEl=document.getElementById('awakenTalents');
+    if(talents.length>0)tEl.innerHTML=talents.map(t=>`<div class="talent-card"><div class="t-icon">${t.icon}</div><div class="t-info"><div class="t-name">${t.name}</div><div class="t-desc">${t.desc}</div><div class="t-rate">出现概率: ${(t.rate*100).toFixed(1)}%</div></div></div>`).join('');
+    else tEl.innerHTML='<div class="awaken-none">没有觉醒特殊天赋</div>';
+    document.getElementById('awakenOverlay').classList.add('show');
+    document.getElementById('awakenStart').onclick=function(){
+      document.getElementById('awakenOverlay').classList.remove('show');
+      initGame(rName,innate,roll);
+      document.getElementById('gameScreen').style.display='block';
+      let td=G.talents.length>0?'天赋: '+G.talents.map(t=>t.name).join('、'):'无特殊天赋';
+      addLog('system',`✨ ${G.name} 武魂觉醒！先天魂力${G.innateSP}级，${td}`);
+      addLog('system',`⚔ 武魂：${G.ms.icon} ${G.ms.n}（${G.ms.cat}）— ${G.ms.eff}`);
+      if(hasTalent('twin')) addLog('system','⚔⚔ 双生武魂！主武魂九环后切换副武魂！');
+      if(hasTalent('twin')&&G._secondaryMs) addLog('system','⚔ 副武魂: '+G._secondaryMs.icon+G._secondaryMs.n);
+      updateAll();
+    };
+  });
+});
+</script>
+</body>
+</html>

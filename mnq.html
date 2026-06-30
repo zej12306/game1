@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>凡人修仙传 · 模拟器</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    html,body{width:100%;height:100%;overflow:hidden;background:#0a0a12;font-family:"PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif}
+    body{display:flex;justify-content:center}
+    #game-container{width:100%;max-width:375px;height:100%;background:#0d0d1a;color:#d0cfc5;position:relative;overflow:hidden}
+    /* loading */
+    #loading{position:absolute;top:0;left:0;width:100%;height:100%;background:#0a0a12;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center}
+    #loading .s{width:32px;height:32px;border:3px solid #2a2a3a;border-top-color:#c9a96e;border-radius:50%;animation:spin .8s linear infinite;margin-bottom:16px}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    #loading .t{color:#888;font-size:13px}
+    #loading .e{color:#e05555;font-size:11px;max-width:280px;margin-top:12px;text-align:center;white-space:pre-wrap;display:none}
+  </style>
+</head>
+<body>
+<div id="game-container"><div id="loading"><div class="s"></div><div class="t">加载中……</div><div class="e" id="load-error"></div></div></div>
+
+<!-- ═════ 模块加载器 ═════ -->
+<script>
+(function() {
+  var loaded = {};
+  var errors = [];
+
+  window.__loadScript = function(url, name) {
+    if (loaded[name]) return;
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', url, false);
+    try { xhr.send(null); } catch(e) {
+      var msg = '[XHR] ' + url + ': ' + e.message;
+      console.error(msg);
+      errors.push(msg);
+      return;
+    }
+    if (xhr.status < 200 || xhr.status >= 400) {
+      var msg2 = '[HTTP ' + xhr.status + '] ' + url;
+      console.error(msg2);
+      errors.push(msg2);
+      return;
+    }
+    var code = xhr.responseText;
+    // 剥离 require / export（少量残留）
+    code = code.replace(/^.*require\(.*\);?\s*$/gm, '');
+    code = code.replace(/\bexport\s*\{[\s\S]*?\};?\s*\n?/g, '');
+    code = code.replace(/^\s*module\.exports\s*=.*;?\s*$/gm, '');
+
+    try {
+      (0, eval)(code);
+      loaded[name] = true;
+      document.getElementById('loading').querySelector('.t').textContent = '已加载: ' + name;
+    } catch(e) {
+      var msg3 = '[EVAL] ' + url + ': ' + e.message;
+      console.error(msg3);
+      errors.push(msg3);
+    }
+  };
+
+  window.__showErrors = function() {
+    var el = document.getElementById('load-error');
+    if (errors.length > 0) {
+      el.style.display = 'block';
+      el.textContent = '加载失败:\n' + errors.join('\n') + '\n\n按 F12 查看详细报错';
+    }
+  };
+})();
+</script>
+
+<!-- ═════ 按依赖顺序加载 ═════ -->
+<script>
+__loadScript('js/data.js',        'data');
+__loadScript('js/player.js',      'player');
+__loadScript('js/cultivation.js', 'cultivation');
+__loadScript('js/skills.js',      'skills');
+__loadScript('js/equipment.js',   'equipment');
+__loadScript('js/crafting.js',    'crafting');
+__loadScript('js/exploration.js', 'exploration');
+__loadScript('js/world.js',       'world');
+__loadScript('js/companions.js',  'companions');
+__loadScript('js/bottle.js',      'bottle');
+__loadScript('js/events.js',      'events');
+__loadScript('js/battle.js',      'battle');
+__loadScript('js/save.js',        'save');
+__loadScript('js/ui.js',          'ui');
+__loadScript('js/main.js',        'main');
+__showErrors();
+</script>
+</body>
+</html>
